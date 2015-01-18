@@ -1,0 +1,30 @@
+This one is to run Lg dependance
+
+Parameter
+Range
+Physical Gate Length
+20 nm2 nm
+W
+7.6 nm0.76 nm
+H
+42 nm4.2 nm
+EOT
+0.8 nm (12.5 dielectric, 2.56 physical thickness)0.1 nm
+Doping
+6x10^18 /cm^30.6x10^18 /cm^3
+mobility
+400cm^2/V-s
+electron saturation
+
+
+Ioff
+100nA/um
+Ion
+1348 uA/um
+Vt,lin
+0.306
+Vt,sat
+0.19
+Vdd
+0.86
+

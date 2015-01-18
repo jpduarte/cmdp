@@ -1,0 +1,5 @@
+# add files or folder that wont be tracked
+*~
+*pyc
+*png
+*jpg
