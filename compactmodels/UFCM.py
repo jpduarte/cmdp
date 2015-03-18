@@ -37,7 +37,7 @@ class UFCM:
     self.Nch              = 6.0e24 #1/m^3
     self.phi_substrate    = 4.05 #eV
     self.phi_gate 	      = 4.25 #eV
-    self.alpha_MI         = 0.7
+    self.alpha_MI         = 0.1
     self.Lg               = 1e-6
     #UFCM parameters
     self.GEOMOD = 5

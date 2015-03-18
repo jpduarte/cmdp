@@ -2,9 +2,13 @@
 #juan pablo
 
 import sys
-sys.path.insert(0, '/users/jpduarte/research/cmdp/compactmodels')
-sys.path.insert(0, '/users/jpduarte/research/cmdp/plotscripts')
+rootfolder = '/users/jpduarte/research'
 
+#indicate path for folders containing required classes
+sys.path.insert(0, rootfolder+'/cmdp/compactmodels')
+sys.path.insert(0, rootfolder+'/cmdp/plotscripts')
+
+#import clases: TODO: check if 'clases' is the right name
 import UFCM
 import plotgeneral
 import pylab

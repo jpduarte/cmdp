@@ -3,8 +3,17 @@
 #BSIM Group, UC Berkeley
 
 import supportfunctions as sf
-import pylab
+import matplotlib.pyplot as plt
 from numpy import loadtxt
+
+
+def guess_seq_len(seq):
+    guess = 1
+    max_len = len(seq) / 2
+    for x in range(2, max_len):
+        if sum(abs(seq[0:x] - seq[x:2*x]))<1e-10 :
+            return x
+    return guess
 
 class plotgeneral:
   def __init__(self):#, model):
@@ -17,7 +26,6 @@ class plotgeneral:
     self.markerfacecolor = (1, 1, 1, 1)
     self.lw=1
     self.ylogflag = '0'
-    
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     if type(value) == type(''):
@@ -44,10 +52,10 @@ class plotgeneral:
       count+=1  
 
     #plot
-    pylab.figure(fignumber)
-    pylab.plot(biaslist[xvariable-1],fval,self.symbol, lw=self.lw, color=self.color )#markerfacecolor=self.markerfacecolor,
+    plt.figure(fignumber)
+    plt.plot(biaslist[xvariable-1],fval,self.symbol, lw=self.lw, color=self.color )#markerfacecolor=self.markerfacecolor,
     if self.ylogflag==1:
-      ax = pylab.gca()
+      ax = plt.gca()
       ax.set_yscale('log') 
         
     
@@ -62,10 +70,14 @@ class plotgeneral:
       datalist = loadtxt(pathandfile,skiprows = 1)
 
       #plot
-      pylab.figure(fignumber)      
-      pylab.plot( datalist[:,xindex], datalist[:,yindex], self.symbol, lw=self.lw, color=self.color  )
+      plt.figure(fignumber)      
+      plt.plot( datalist[:,xindex], datalist[:,yindex], self.symbol, lw=self.lw, color=self.color  )
       if self.ylogflag==1:
-        ax = pylab.gca()
+        ax = plt.gca()
         ax.set_yscale('log')       
     target.close()
+    ax = plt.gca()
+    ax.set_xlabel(xstring)
+    ax.set_ylabel(ystring)  
+    print guess_seq_len(datalist[:,xindex])  
 
