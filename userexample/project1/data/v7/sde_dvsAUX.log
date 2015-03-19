@@ -1,0 +1,201 @@
+Evaluating file ./v7/sde_dvsAUX.cmd
+---> (sde:clear)
+()
+---> (sdegeo:set-default-boolean BAB)
+"ABA"
+---> (define Lg 1.0)
+Lg
+---> (define Lg_2_l (* Lg -0.5))
+Lg_2_l
+---> (define Lg_2_r (* Lg 0.5))
+Lg_2_r
+---> (define Lg_ext 0.01)
+Lg_ext
+---> (define Lg_S_l (- Lg_2_l Lg_ext))
+Lg_S_l
+---> (define Lg_S_r Lg_2_l)
+Lg_S_r
+---> (define Lg_D_l Lg_2_r)
+Lg_D_l
+---> (define Lg_D_r (+ Lg_2_r Lg_ext))
+Lg_D_r
+---> (define Wsub 0.03)
+Wsub
+---> (define Wsub_l (* Wsub -0.5))
+Wsub_l
+---> (define Wsub_r (* Wsub 0.5))
+Wsub_r
+---> (define Hgate_t 0.1)
+Hgate_t
+---> (define Hgate_b 0.0)
+Hgate_b
+---> (define Hfin_t 0.042)
+Hfin_t
+---> (define bottom_structure 0.03)
+bottom_structure
+---> (define Wsti Wsub)
+Wsti
+---> (define Wsti_l (* Wsti -0.5))
+Wsti_l
+---> (define Wsti_r (* Wsti 0.5))
+Wsti_r
+---> (define Hsti_t 0)
+Hsti_t
+---> (define Hsti_b (* bottom_structure -1))
+Hsti_b
+---> (define Hsipt_t 0)
+Hsipt_t
+---> (define Hsipt_b (* bottom_structure -1))
+Hsipt_b
+---> (define Ro 0.003)
+Ro
+---> (define Hsi Hfin_t)
+Hsi
+---> (define WsiT 0.0076)
+WsiT
+---> (define WsiBL 0.0038)
+WsiBL
+---> (define WsiBR 0.0038)
+WsiBR
+---> (define toxT 0.0008)
+toxT
+---> (define toxL 0.0008)
+toxL
+---> (define toxR 0.0008)
+toxR
+---> (define Wsipt_l (* (+ (* WsiT 0.5) WsiBL) -1.0))
+Wsipt_l
+---> (define Wsipt_r (+ (* WsiT 0.5) WsiBR))
+Wsipt_r
+---> (define sin_alpha (/ Hsi (sqrt (+ (expt WsiBL 2) (expt Hsi 2)))))
+sin_alpha
+---> (define tan_alpha (/ Hsi WsiBL))
+tan_alpha
+---> (define cos_alpha (/ WsiBL (sqrt (+ (expt WsiBL 2) (expt Hsi 2)))))
+cos_alpha
+---> (define sin_alpha2 (/ Hsi (sqrt (+ (expt WsiBR 2) (expt Hsi 2)))))
+sin_alpha2
+---> (define tan_alpha2 (/ Hsi WsiBR))
+tan_alpha2
+---> (define cos_alpha2 (/ WsiBR (sqrt (+ (expt WsiBR 2) (expt Hsi 2)))))
+cos_alpha2
+---> (define Pfin1_X (+ (/ WsiT 2) WsiBL))
+Pfin1_X
+---> (define Pfin1_Y 0)
+Pfin1_Y
+---> (define Pfin2_X (/ WsiT 2))
+Pfin2_X
+---> (define Pfin2_Y Hsi)
+Pfin2_Y
+---> (define Pfin3_X (+ (/ WsiT 2) WsiBR))
+Pfin3_X
+---> (define Pfin3_Y 0)
+Pfin3_Y
+---> (define Ptox1_X (+ WsiBL (+ (/ WsiT 2) (/ toxL sin_alpha))))
+Ptox1_X
+---> (define Ptox1_Y 0)
+Ptox1_Y
+---> (define Ptox2_X (+ (/ WsiT 2) (/ toxL sin_alpha)))
+Ptox2_X
+---> (define Ptox2_Y Hsi)
+Ptox2_Y
+---> (define Ptox3_X (/ WsiT 2))
+Ptox3_X
+---> (define Ptox3_Y (+ Hsi toxL))
+Ptox3_Y
+---> (define Ptox4_X (/ WsiT 2))
+Ptox4_X
+---> (define Ptox4_Y (+ Hsi toxL))
+Ptox4_Y
+---> (define Ptox5_X (+ (/ WsiT 2) (/ toxL sin_alpha2)))
+Ptox5_X
+---> (define Ptox5_Y Hsi)
+Ptox5_Y
+---> (define Ptox6_X (+ WsiBR (+ (/ WsiT 2) (/ toxL sin_alpha2))))
+Ptox6_X
+---> (define Ptox6_Y 0)
+Ptox6_Y
+---> (sdegeo:create-cuboid (position (* Pfin1_X -1) Hsipt_b Lg_2_l) (position Pfin3_X Hsipt_t Lg_2_r) Silicon SiSTI)
+#[body 9 1]
+---> (sdegeo:create-cuboid (position Wsti_l Hsti_b Lg_2_l) (position Wsti_r Hsti_t Lg_2_r) Oxide OxideSTI)
+#[body 10 1]
+---> (sdegeo:create-polygon (list (position (* Pfin1_X -1) Pfin1_Y Lg_2_l) (position (* Pfin2_X -1) Pfin2_Y Lg_2_l) (position Pfin2_X Pfin2_Y Lg_2_l) (position Pfin3_X Pfin3_Y Lg_2_l) (position (* Pfin1_X -1) Pfin1_Y Lg_2_l)) Silicon SiFin)
+#[body 11 1]
+---> (sdegeo:extrude (list (car (find-face-id (position 0.0 (/ Hsi 2) Lg_2_l)))) Lg)
+(#[body 11 1])
+---> (sdegeo:create-polygon (list (position (* Ptox1_X -1) Ptox1_Y (- Lg_2_l 0.001)) (position (* Ptox2_X -1) Ptox2_Y (- Lg_2_l 0.001)) (position (* Ptox3_X -1) Ptox3_Y (- Lg_2_l 0.001)) (position Ptox4_X Ptox4_Y (- Lg_2_l 0.001)) (position Ptox5_X Ptox5_Y (- Lg_2_l 0.001)) (position Ptox6_X Ptox6_Y (- Lg_2_l 0.001)) (position (* Ptox1_X -1) Ptox1_Y (- Lg_2_l 0.001))) Oxide OxideGate)
+#[body 31 1]
+---> (sdegeo:extrude (list (car (find-face-id (position 0.0 (+ Hsi (/ toxT 2)) (- Lg_2_l 0.001))))) (+ Lg 0.002))
+(#[body 31 1])
+---> (sdegeo:create-cuboid (position Wsub_l Hgate_b Lg_2_l) (position Wsub_r Hgate_t Lg_2_r) Metal MetalGate)
+#[body 38 1]
+---> (sdegeo:set-default-boolean ABA)
+"BAB"
+---> (sdegeo:create-polygon (list (position (* Pfin1_X -1) Pfin1_Y Lg_S_l) (position (* Pfin2_X -1) Pfin2_Y Lg_S_l) (position Pfin2_X Pfin2_Y Lg_S_l) (position Pfin3_X Pfin3_Y Lg_S_l) (position (* Pfin1_X -1) Pfin1_Y Lg_S_l)) Silicon SiS)
+#[body 39 1]
+---> (sdegeo:extrude (list (car (find-face-id (position 0.0 (/ Hsi 2) Lg_S_l)))) Lg_ext)
+(#[body 39 1])
+---> (sdegeo:create-polygon (list (position (* Pfin1_X -1) Pfin1_Y Lg_D_r) (position (* Pfin2_X -1) Pfin2_Y Lg_D_r) (position Pfin2_X Pfin2_Y Lg_D_r) (position Pfin3_X Pfin3_Y Lg_D_r) (position (* Pfin1_X -1) Pfin1_Y Lg_D_r)) Silicon SiD)
+#[body 80 1]
+---> (sdegeo:extrude (list (car (find-face-id (position 0.0 (/ Hsi 2) Lg_D_r)))) (* Lg_ext -1))
+(#[body 80 1])
+---> (sdedr:define-constant-profile Const.SubstrateFIN BoronActiveConcentration 6e+18)
+#t
+---> (sdedr:define-constant-profile-region PlaceCD.SubstrateFIN Const.SubstrateFIN SiFin)
+#t
+---> (sdedr:define-constant-profile Const.SubstratePT BoronActiveConcentration 2e+18)
+#t
+---> (sdedr:define-constant-profile-region PlaceCD.SubstratePT Const.SubstratePT SiSTI)
+#t
+---> (sdedr:define-constant-profile Const.Sext ArsenicActiveConcentration 1e+21)
+#t
+---> (sdedr:define-constant-profile-region PlaceCD.Sext Const.Sext SiS)
+#t
+---> (sdedr:define-constant-profile Const.Dext ArsenicActiveConcentration 1e+21)
+#t
+---> (sdedr:define-constant-profile-region PlaceCD.Dext Const.Dext SiD)
+#t
+---> (sdegeo:define-contact-set source 4.0 (color:rgb 1.0 0.0 0.0) ##)
+()
+---> (sdegeo:define-contact-set drain 4.0 (color:rgb 0.0 1.0 0.0) ==)
+()
+---> (sdegeo:define-contact-set gate 4.0 (color:rgb 0.0 0.0 1.0) ||)
+()
+---> (sdegeo:define-contact-set substrate 4.0 (color:rgb 1.0 0.0 1.0) <><>)
+()
+---> (sdegeo:set-current-contact-set gate)
+""
+---> (define GateID (find-body-id (position 0 Hgate_t 0)))
+GateID
+---> (sdegeo:set-contact-boundary-faces GateID)
+#t
+---> (sdegeo:delete-region GateID)
+()
+---> (sdegeo:set-current-contact-set source)
+"gate"
+---> (sdegeo:set-contact-faces (find-face-id (position 0.0 (/ Hfin_t 2) Lg_S_l)))
+#t
+---> (sdegeo:set-current-contact-set drain)
+"source"
+---> (sdegeo:set-contact-faces (find-face-id (position 0.0 (/ Hfin_t 2) Lg_D_r)))
+#t
+---> (sdegeo:set-current-contact-set substrate)
+"drain"
+---> (sdegeo:set-contact-faces (find-face-id (position 0.0 Hsipt_b 0)))
+#t
+---> (sdedr:define-refinement-window RefWin.Global Cuboid (position Wsub_l Hsti_b Lg_S_l) (position Wsub_r Hgate_t Lg_D_r))
+#[body 340 1]
+---> (sdedr:define-refinement-size RefDef.Global (* WsiT 0.5) (* WsiT 0.5) (* 0.1 Lg) (* WsiT 0.1) (* WsiT 0.1) (* 0.05 Lg))
+#t
+---> (sdedr:define-refinement-placement Place.Global RefDef.Global RefWin.Global)
+#t
+---> (sde:build-mesh snmesh   ./v7/finfet_7Lg_5)
+#t
+---> #[end-of-file]
+"************************************************************************"
+"Sentaurus Structure Editor "
+"Start Time:    Thu Oct 16 11:14:28 2014"
+"End   Time:    Thu Oct 16 11:14:58 2014"
+"Total Execution Time (sec):    0"
+"Total System calls Time (sec): 0"
+"************************************************************************"

@@ -136,6 +136,7 @@ class hspicepython:
     #02: search y, meanhwile parsing data id-vg
     state=0
 
+    #TODO: parse case with many output variables, it include more than one read
     countruns=0
     for line in outputfiletoread:
       #print line

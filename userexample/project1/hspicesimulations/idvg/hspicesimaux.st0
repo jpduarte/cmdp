@@ -1,0 +1,60 @@
+***** HSPICE -- G-2012.06-ENG1 32-BIT (Jun 28 2012) RHEL32 ******
+ Input File: /users/jpduarte/research/cmdp/userexample/project1/hspicesimulation
+ lic:
+ lic: FLEXlm: v10.8
+ lic: USER:   jpduarte             HOSTNAME: bwrcrdsl-3.eecs.berkeley.edu
+ lic: HOSTID:                      PID:      20253
+ lic: Using FLEXlm license file:
+ lic: 1701@sunv40z-1.eecs.berkeley.edu
+ lic: Checkout 1 hspice
+ lic: License/Maintenance for hspice will expire on 19-dec-2015/2014.09
+ lic: 1(in_use)/50(total) FLOATING license(s) on SERVER sunv40z-1.eecs.berkeley.
+ lic:
+ init: begin read circuit files,  cpu clock=  3.00E-02
+       option search   = /tools/synopsys/hspice/G-2012.06-ENG1/hspice/par
+                         ts/ad
+       option search   = /tools/synopsys/hspice/G-2012.06-ENG1/hspice/par
+                         ts/ad
+       option search   = /tools/synopsys/hspice/G-2012.06-ENG1/hspice/par
+                         ts/behave
+       option search   = /tools/synopsys/hspice/G-2012.06-ENG1/hspice/par
+                         ts/bjt
+       option search   = /tools/synopsys/hspice/G-2012.06-ENG1/hspice/par
+                         ts/burr_brn
+       option search   = /tools/synopsys/hspice/G-2012.06-ENG1/hspice/par
+                         ts/comlinear
+       option search   = /tools/synopsys/hspice/G-2012.06-ENG1/hspice/par
+                         ts/dio
+       option search   = /tools/synopsys/hspice/G-2012.06-ENG1/hspice/par
+                         ts/fet
+       option search   = /tools/synopsys/hspice/G-2012.06-ENG1/hspice/par
+                         ts/lin_tech
+       option search   = /tools/synopsys/hspice/G-2012.06-ENG1/hspice/par
+                         ts/pci
+       option search   = /tools/synopsys/hspice/G-2012.06-ENG1/hspice/par
+                         ts/signet
+       option search   = /tools/synopsys/hspice/G-2012.06-ENG1/hspice/par
+                         ts/ti
+       option search   = /tools/synopsys/hspice/G-2012.06-ENG1/hspice/par
+                         ts/tline
+       option search   = /tools/synopsys/hspice/G-2012.06-ENG1/hspice/par
+                         ts/xilinx
+       option runlvl
+       option abstol   =    1.000E-06
+       option reltol   =    1.000E-06
+       option post
+       option ingold
+       option measfo   =     1.00
+ init: end read circuit files,  cpu clock=  9.00E-02 memory=    169 kb
+ init: begin check errors,  cpu clock=  9.00E-02
+ **warning**  No DC path to ground from node        0:                0.0
+ init: end check errors,  cpu clock=  1.10E-01 memory=    169 kb
+ init: begin setup matrix, pivot=     0 cpu clock=  1.10E-01
+       establish matrix -- done,  cpu clock=  1.10E-01 memory=    170 kb
+       re-order matrix -- done,  cpu clock=  1.10E-01 memory=    170 kb
+ init: end setup matrix,  cpu clock=  1.10E-01 memory=    181 kb
+ output: /users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/id
+ sweep: dc dc0    begin, #sweeps= 200 cpu clock=  1.20E-01
+ sweep: dc dc0    end,  cpu clock=  3.80E-01 memory=    187 kb
+>info:         ***** hspice job concluded
+ lic: Release hspice token(s)

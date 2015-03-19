@@ -1,0 +1,26 @@
+Args: pva -p hsp -t spi -f /users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/idvg/hspicesimaux.pvadir/pvaHDL.lis -o /users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/idvg/hspicesimaux.pvadir
+
+==> Start pvaCG on Thu Mar 19 13:32:47 2015
+
+
+Begin of pVA compiling on Thu Mar 19 13:32:47 2015
+
+Parsing '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg.va'
+Parsing include file '/tools/synopsys/hspice/G-2012.06-ENG1/hspice/include/constants.vams'
+Parsing include file '/tools/synopsys/hspice/G-2012.06-ENG1/hspice/include/disciplines.vams'
+Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/common_defs.include'
+Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg_sp.include'
+Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg_sp_new.include'
+Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg_body.include'
+Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg_binning.include'
+
+End of pVA compiling on Thu Mar 19 13:32:47 2015
+
+
+End of build pVA DB on Thu Mar 19 13:32:47 2015
+
+
+/users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/idvg/hspicesimaux.pvadir/pvaRTL_linux.so is reused
+
+End of pVA elaboration on Thu Mar 19 13:32:47 2015
+

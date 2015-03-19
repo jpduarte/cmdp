@@ -1,0 +1,95 @@
+****************************************************************************
+***                            Sentaurus Mesh                            ***
+***                          Version G-2012.06                           ***
+***                            (1.12, RHEL64)                            ***
+***                                                                      ***
+***                       Copyright (C) 2005-2012                        ***
+***                            Synopsys, Inc.                          ***
+***                                                                      ***
+***  This software and the associated documentation are confidential     ***
+***  and proprietary to Synopsys, Inc.  Your use or disclosure of this   ***
+***  software is subject to the terms and conditions of a written        ***
+***  license agreement between you, or your company, and Synopsys, Inc.  ***
+****************************************************************************
+
+Compiled Wed Oct 17 21:05:30 PDT 2012 on: tcadprod5
+Running on: rostam
+Process ID: 19589
+
+Flags used:
+
+** Generating 3d grid **
+
+
+===============================  brep quality  ===================================
+minAngle: 0.0460085  [near (0.008403 -0 -0.5)]
+maxAngle: 95.1698  [near (0.0038 0.042 0.5)]
+minDihedralAngle: 84.8302  [near (0.008403 -0 -0.5),(0.008403 -0 0.5)] at region=OxideGate
+nVerts = 60  nTris = 140  nRegs = 11
+bmin: -0.015 -0.03 -0.51
+bmax: 0.015 0.0428 0.51
+min edgeLength: 0.0008  [near (0.0038 0.0424 0.501)]
+min area: 3.212e-07  max area: 0.0210858  total area: 0.372351 interface area: 0.169891
+volume: 0.00877619
+Conformal? true
+Are all boundaries on bbox? false
+==================================================================================
+Creating binary tree...done.
+Smoothing out binary tree...done.
+Imprinting binary tree on the boundary...done.
+Optimizing boundary nodes...done.
+
+===============================  brep quality  ===================================
+minAngle: 0.0449379  [near (0.00375 0.042 -0.3825)]
+maxAngle: 173.653  [near (0.0076 -0 0.501)]
+minDihedralAngle: 84.8302  [near (0.0076 -0 -0.5),(0.0076 -0 -0.501)] at region=SiS
+nVerts = 3486  nTris = 7348  nRegs = 11
+bmin: -0.015 -0.03 -0.51
+bmax: 0.015 0.0428 0.51
+min edgeLength: 5e-05  [near (0.003775 0.042 0.501)]
+min area: 2e-08  max area: 0.000119531  total area: 0.372351 interface area: 0.169891
+volume: 0.00877619
+Conformal? true
+Are all boundaries on bbox? false
+==================================================================================
+Number of vertices after binary tree generation : 
+  5049 (tree) + 3486 (boundary)
+
+** Delaunizing the mesh **
+
+Creating delaunizer input...done.
+Fixing diagonals...done.
+Building a generic Delaunay triangulation of the input vertices...done.
+Setting up planar patches...done.
+Initializing protection spheres...done.
+Flipping edges...done. (6777 vertices, 39366 elements)
+Solving ridges...done. (6847 vertices, 39694 elements)
+Solving faces...done. (19777 vertices, 116573 elements)
+Optimizing elements...done. (19777 vertices)
+Recovering faces...done. (19777 vertices)
+Eliminating slivers...done. (178.325 degrees), maxWeight = 6.96747e-07 um^2.
+
+The final mesh has: 
+   18102 points.
+   91028 elements.
+      11 regions.
+Max. connectivity = 72 located at (0.0076;-0.0209;-0.473118)
+
+
+==============================  tet-grid quality  ================================
+    0  10  20  30  40  50  60  70  80  90 100 110 120 130 140 150 160 170 180
+ %    6   8   3   7   1   1  10   1  12  41   1  .    4  .   .    1   1   1
+---------------------------------------------------------------------------------
+minAngle: 0.0715337  maxAngle: 177.481
+nVerts = 18102  nTets = 91028  nMats = 7
+max connectivity (tets per node): 72
+bmin: -0.015 -0.03 -0.51
+bmax: 0.015 0.0428 0.51
+min edgeLength: 5e-05  [near (0.0037625 0.0412625 0.50025)]
+min volume: 6.66667e-12  max volume: 4.93741e-07  Total volume: 0.0014627
+bbox  volume: 0.00222768
+Are all boundaries on bbox? false
+=================================================================================
+Interpolating data...done.
+done.
+Saving file ./v7/finfet_7Lg_5_msh.tdr...done.

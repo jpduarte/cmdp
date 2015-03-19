@@ -1,0 +1,6 @@
+-this project has example of the different features of the compact model development platform
+-please create a new user folder, for example usersourabh, to create your own model test scripts and you can use the example as reference
+-please modify the .gitignore file, and include the user folder you are using, or, just create the userfolder outside the cmdp folder so we do not keep track of your work
+Juan Duarte
+BSIM Group
+March 2015

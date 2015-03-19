@@ -79,5 +79,5 @@ class plotgeneral:
     ax = plt.gca()
     ax.set_xlabel(xstring)
     ax.set_ylabel(ystring)  
-    print guess_seq_len(datalist[:,xindex])  
+    #print guess_seq_len(datalist[:,xindex])  
 

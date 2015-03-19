@@ -1,0 +1,45 @@
+
+ --------------------------------------------------------
+|                                                        |
+|          Synopsys Unified Verilog-A (pVA v2.0)         |
+|                                                        |
+|       Machine Name: bwrcrdsl-3.eecs.berkeley.edu       |
+| Copyright (c) 2012 Synopsys Inc., All Rights Reserved. |
+|                                                        |
+ --------------------------------------------------------
+
+libepva built by pvamgr synmake_pva_build  on Mon Jun 11 20:01:00 PDT 2012
+HSP_HOME:   /tools/synopsys/hspice/G-2012.06-ENG1/hspice
+HSP_ARCH:   linux
+HSP_GCC :   /tools/synopsys/hspice/G-2012.06-ENG1/hspice/GNU/amd64/gcc-4.5.2-static/bin/gcc -m32 
+HSP_GCC_VER:   4.5.2
+Working-Dir: /users/jpduarte/research/cmdp/userexample/project1/model_tests
+Args:        -p hsp -t spi -f /users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/idvg/hspicesimaux.pvadir/pvaHDL.lis -o /users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/idvg/hspicesimaux.pvadir 
+
+
+Begin of pVA compiling on Thu Mar 19 13:32:47 2015
+
+Parsing '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg.va'
+Parsing include file '/tools/synopsys/hspice/G-2012.06-ENG1/hspice/include/constants.vams'
+Parsing include file '/tools/synopsys/hspice/G-2012.06-ENG1/hspice/include/disciplines.vams'
+Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/common_defs.include'
+Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg_sp.include'
+Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg_sp_new.include'
+Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg_body.include'
+Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg_binning.include'
+
+End of pVA compiling on Thu Mar 19 13:32:47 2015
+
+
+End of build pVA DB on Thu Mar 19 13:32:47 2015
+
+
+/users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/idvg/hspicesimaux.pvadir/pvaRTL_linux.so is reused
+
+End of pVA elaboration on Thu Mar 19 13:32:47 2015
+
+*pvaI* Creating Verilog-A module 'bsimimg' for X1
+
+
+pVA concluded on Thu Mar 19 13:32:47 2015
+
