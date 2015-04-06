@@ -6,6 +6,42 @@ import supportfunctions as sf
 import matplotlib.pyplot as plt
 from numpy import loadtxt
 
+#########################################################################
+#Derivative Support functions
+def mkfdstencil(x,xbar,k):
+#this funtion is sue to create finite diference method matrix
+  maxorder            = len(x)
+  h_matrix            = repmat(np.transpose(x)-xbar,maxorder,1)
+  powerfactor_matrix  = np.transpose(repmat(np.arange(0,maxorder),maxorder,1))
+  factorialindex      = np.transpose(repmat(factorial(np.arange(0,maxorder)),maxorder,1))
+  taylormatrix        = h_matrix ** powerfactor_matrix /factorialindex
+  derivativeindex     = np.zeros(maxorder)
+  derivativeindex[k]  = 1 
+  u = np.linalg.solve(taylormatrix,derivativeindex)
+  return u
+
+def K_generator(x):
+#this return matrix of Poisson Equation in Silicon Fin, with Neuman BC at both ends
+  N=len(x);
+  K = lil_matrix((N, N))
+  order = 1
+  K[0,:6]=mkfdstencil(x[0:6],x[0],order)
+  K[1,:6]=mkfdstencil(x[0:6],x[1],order)
+  K[2,:6]=mkfdstencil(x[0:6],x[2],order)
+
+  i=3
+  for xbar in x[3:-4]:
+    #print i
+    K[i,i-3:i+3]=mkfdstencil(x[i-3:i+3],xbar,order)
+    i+=1
+  #print i
+  K[i,-7:-1]=mkfdstencil(x[-7:-1],x[-3],order)  
+  i+=1
+  K[i,-7:-1]=mkfdstencil(x[-7:-1],x[-2],order)
+  i+=1  
+  K[i,-7:-1]=mkfdstencil(x[-7:-1],x[-1],order)  
+  return K.tocsr()
+#########################################################################
 
 def guess_seq_len(seq):
     guess = 1
@@ -15,6 +51,8 @@ def guess_seq_len(seq):
             return x
     return guess
 
+#########################################################################
+#plotgeneral class definition
 class plotgeneral:
   def __init__(self):#, model):
     self.version = 'v1'
@@ -26,6 +64,7 @@ class plotgeneral:
     self.markerfacecolor = (1, 1, 1, 1)
     self.lw=1
     self.ylogflag = '0'
+    self.derivativeorder = 0
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     if type(value) == type(''):
@@ -34,30 +73,6 @@ class plotgeneral:
     else:
       exec "self."+name+' = '+str(value)    
       #print "self."+name+' = '+str(value) 
-      
-      
-  def plotmodel(self,f,fignumber, xvariable,*args):
-    #this function plots the function "f" for all the combinations in the evaluation points *args, then, it plot the evalaution parameter in position xvariable
-    biaslist = sf.meshgrid2(*args) #list of ndarray, take all combinations of imputs biases
-    totalbiases = len(biaslist[0])#check the length of the final array
-    count=0
-    fval = []
-    while count<totalbiases:
-      biasplotaux = []
-      for biasx in biaslist:
-        biasplotaux.append(biasx[count])
-        
-      #print biasplotaux
-      fval.append( f(*tuple(biasplotaux)))
-      count+=1  
-
-    #plot
-    plt.figure(fignumber)
-    plt.plot(biaslist[xvariable-1],fval,self.symbol, lw=self.lw, color=self.color )#markerfacecolor=self.markerfacecolor,
-    if self.ylogflag==1:
-      ax = plt.gca()
-      ax.set_yscale('log') 
-        
     
   def plotfiledata(self,pathandfile,xstring,ystring,fignumber):
     #this function open a file pathandfile and plot the columns with xstring and ystring string header

@@ -7,7 +7,7 @@ import UFCMdraincurrentmodel
 
 from numpy import sqrt, exp
 
-class UFCM:
+class compactmodel:
   def __init__(self,name):
     self.name = name
     self.version = 'v1'
@@ -39,6 +39,7 @@ class UFCM:
     self.phi_gate 	      = 4.25 #eV
     self.alpha_MI         = 0.1
     self.Lg               = 1e-6
+    self.returnvar        = ['Ids']
     #UFCM parameters
     self.GEOMOD = 5
     if (self.GEOMOD==5):
@@ -48,14 +49,7 @@ class UFCM:
     """self.Cins = (2*self.HFIN+self.TFIN)*self.eins/self.tins
     self.Ach = self.TFIN*self.HFIN
     self.Weff = 2*self.TFIN"""
-  def updateparameter(self,name,value):
-    #this funtion update a parameter in the model
-    if type(value) == type(''):
-      exec "self."+name+' = '+value
-    else:
-      exec "self."+name+' = '+str(value)    
-
-  def draincurrent(self,*args):
+  def analog(self,*args):
     Vdi,Vgi,Vsi,Vbi = args
     """this function returns the drain current for given bias"""
     
@@ -87,4 +81,13 @@ class UFCM:
     if flagsweep ==1:
       ids0=-ids0
       
-    return ids0*idsfactor
+    Ids = ids0*idsfactor
+    
+    #attach values of variables to return
+    variablesvalues = []
+    for var in self.returnvar:
+      exec 'variablesvalues.append('+var+')'
+    #print variablesvalues
+     
+    return  variablesvalues,self.returnvar
+

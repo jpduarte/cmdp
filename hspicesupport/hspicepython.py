@@ -22,16 +22,16 @@ class hspicepython:
     self.dcbiases = [np.linspace(0.05,1,2), np.linspace(0.0,1,20), [0], [0]] #sim1.updateparameter('dcbiases',[np.linspace(0.05,1,2), np.linspace(0.0,1,20), [0], [0]])#values for bias conditions of nodes
     self.deviceparameter = ['L']#sim1.updateparameter('deviceparameter',['L'])#device parameters defined to sweep in simulation
     self.deviceparametervalue = [[1000e-9]]#sim1.updateparameter('deviceparametervalue',[[1000e-9]])#device parameter values for simulation
-    self.vartosafe = ['Ids']#sim1.updateparameter('vartosafe',['Ids','qs']) #add variables to save   
+    self.vartosave = ['Ids']#sim1.updateparameter('vartosave',['Ids','qs']) #add variables to save   
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     exec "self."+name+' = '+'value'    
-  def runhspice(self):
+  def runsim(self):
     #check if simulation path exist, if not, it create the folder
     if not os.path.exists(self.simulationfolder):
       os.makedirs(self.simulationfolder)
     #create simulation file
-    simfile = open(self.simulationfolder+'hspicesimaux.sp', 'w')
+    simfile = open(self.simulationfolder+self.simfilename+'.sp', 'w')
     simfile.write('*script to generate hspice simulation using cmdp, Juan Duarte \n')
     simfile.write('*Date: '+ time.strftime("%m/%d/%Y")+ ', time: ' + time.strftime("%H:%M:%S") + '\n\n')
     #TODO: do not hard code the following 3 lines, use them as parameters?
@@ -119,7 +119,7 @@ class hspicepython:
     
     #print variable, .print dc X1:Dmob X1:U0 X1:Eeffm
     stringtowrite = '.print dc '
-    for varname in self.vartosafe:
+    for varname in self.vartosave:
       stringtowrite = stringtowrite + self.devicesymbol+'1:' +varname+' ' 
     simfile.write(stringtowrite)
     simfile.write('\n.end')
@@ -149,7 +149,7 @@ class hspicepython:
             stringoutput = stringoutput +Vbias+' '
           for parameteraux in self.deviceparameter:
             stringoutput = stringoutput+parameteraux+' '
-          for varname in self.vartosafe:
+          for varname in self.vartosave:
             stringoutput = stringoutput + varname+' '   
           hspicefileresult.write(stringoutput+' \n') 
           i=0
