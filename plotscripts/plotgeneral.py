@@ -5,6 +5,14 @@
 import supportfunctions as sf
 import matplotlib.pyplot as plt
 from numpy import loadtxt
+import numpy as np
+
+from numpy.matlib import repmat
+from scipy.misc import factorial
+from scipy import sparse
+from scipy.sparse import lil_matrix
+from scipy.sparse.linalg import spsolve
+from numpy.linalg import solve, norm
 
 #########################################################################
 #Derivative Support functions
@@ -20,17 +28,16 @@ def mkfdstencil(x,xbar,k):
   u = np.linalg.solve(taylormatrix,derivativeindex)
   return u
 
-def K_generator(x):
-#this return matrix of Poisson Equation in Silicon Fin, with Neuman BC at both ends
+def K_generator(x,order):
+#this return matrix to find the derivative, x is the variable to be derived and order is the derivative order
   N=len(x);
   K = lil_matrix((N, N))
-  order = 1
   K[0,:6]=mkfdstencil(x[0:6],x[0],order)
   K[1,:6]=mkfdstencil(x[0:6],x[1],order)
   K[2,:6]=mkfdstencil(x[0:6],x[2],order)
 
   i=3
-  for xbar in x[3:-4]:
+  for xbar in x[3:-3]:
     #print i
     K[i,i-3:i+3]=mkfdstencil(x[i-3:i+3],xbar,order)
     i+=1
@@ -41,15 +48,35 @@ def K_generator(x):
   i+=1  
   K[i,-7:-1]=mkfdstencil(x[-7:-1],x[-1],order)  
   return K.tocsr()
-#########################################################################
 
-def guess_seq_len(seq):
-    guess = 1
-    max_len = len(seq) / 2
-    for x in range(2, max_len):
-        if sum(abs(seq[0:x] - seq[x:2*x]))<1e-10 :
-            return x
-    return guess
+#########################################################################
+#arrange X and Y matrices
+def rearrangearray(arrayXa,elementpercylce,numberelement):
+#this function reshpae array to be printing 
+  arrayXb = arrayXa.reshape((elementpercylce, len(arrayXa)/elementpercylce))
+  arrayXc = np.transpose(arrayXb)
+  arrayXd = arrayXc.reshape((len(arrayXa)/numberelement,numberelement))
+  arrayXe = np.transpose(arrayXd)
+  return arrayXe
+
+def findelementpercylce(arrayaux):
+#this function find the number of times a element is keep constinously
+  firstelement = arrayaux[0]
+  lengthaux = len(arrayaux)
+  flag=1
+  i=1
+
+  elementpercylce = 0
+  while (i<(lengthaux+1) & flag):
+    elementpercylce = i-1
+    print elementpercylce
+    if (abs(arrayaux(i)-firstelement)>0): #%TODO: check abs condition
+      flag=0
+    i=i+1
+  
+  if (flag):
+    elementpercylce = elementpercylce+1
+  return elementpercylce
 
 #########################################################################
 #plotgeneral class definition
@@ -84,15 +111,47 @@ class plotgeneral:
     
       datalist = loadtxt(pathandfile,skiprows = 1)
 
+      xarray = datalist[:,xindex]
+      yarray = datalist[:,yindex]
+      
+      #this is to identify index how to re-shape matrix for right plotting
+      numberelement = 0
+      numberelementaux = len(np.unique(xarray))  
+      numberelementmaxpossible = len(xarray)
+      if( (np.mod(len(xarray),numberelementaux)==0) & ((numberelementmaxpossible-numberelementaux)>0) ):
+        numberelement = numberelementaux;
+        elementpercylce = findelementpercylce(xarray)*numberelement
+      
+      if (numberelement==0):
+        numberelement = numberelementmaxpossible
+        elementpercylce = numberelement
+        
+      #reshape matrix to plot lines
+      xarray = rearrangearray(xarray,elementpercylce,numberelement)
+      yarray = rearrangearray(yarray,elementpercylce,numberelement)
+      
       #plot
-      plt.figure(fignumber)      
-      plt.plot( datalist[:,xindex], datalist[:,yindex], self.symbol, lw=self.lw, color=self.color  )
+      plt.figure(fignumber)
+      
+      #plot variable or its derivatives: TODO: it plot derivate with respect to x-axis, update derivative with respect to any variable
+      if (self.derivativeorder<1):      
+        plt.plot( xarray, yarray, self.symbol, lw=self.lw, color=self.color  )
+      else :
+        K = K_generator(xarray[:,0],self.derivativeorder) 
+        plt.plot( xarray, K*yarray, self.symbol, lw=self.lw, color=self.color  )
+      
+      #log scale check  
       if self.ylogflag==1:
         ax = plt.gca()
-        ax.set_yscale('log')       
+        ax.set_yscale('log') 
+    
+    #x and y axis label          
     target.close()
     ax = plt.gca()
     ax.set_xlabel(xstring)
-    ax.set_ylabel(ystring)  
-    #print guess_seq_len(datalist[:,xindex])  
+    if (self.derivativeorder<1):
+      ax.set_ylabel(ystring)  
+    else:
+      ax.set_ylabel('d^'+str(self.derivativeorder)+' '+ystring+'/d'+xstring+'^'+str(self.derivativeorder))
+
 

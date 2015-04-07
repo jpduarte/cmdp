@@ -49,6 +49,9 @@ class compactmodel:
     """self.Cins = (2*self.HFIN+self.TFIN)*self.eins/self.tins
     self.Ach = self.TFIN*self.HFIN
     self.Weff = 2*self.TFIN"""
+    
+    
+    
   def analog(self,*args):
     Vdi,Vgi,Vsi,Vbi = args
     """this function returns the drain current for given bias"""
