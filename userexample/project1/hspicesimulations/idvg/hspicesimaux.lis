@@ -10,7 +10,7 @@
  lic:  
  lic: FLEXlm: v10.8 
  lic: USER:   jpduarte             HOSTNAME: bwrcrdsl-3.eecs.berkeley.edu 
- lic: HOSTID:                      PID:      15406 
+ lic: HOSTID:                      PID:      29661 
  lic: Using FLEXlm license file: 
  lic: 1701@sunv40z-1.eecs.berkeley.edu 
  lic: Checkout 1 hspice 
@@ -18,17 +18,6 @@
  lic: 1(in_use)/50(total) FLOATING license(s) on SERVER sunv40z-1.eecs.berkeley.
  lic:   
  Init: read install configuration file: /tools/synopsys/hspice/G-2012.06-ENG1/hspice/meta.cfg
- **info** *pvaI* Module (bsimimg): 4 unexpanded port, 0 init, 981 behav, 41 contrib, 110/1295 expr(s)
- **info** *pvaI* 
-
- **info** *pvaI*        Has DIS (ST SB), 9 afCount
-
- **info** *pvaI*        0 const-G and 0 const-C, Has switch branch.
-
- **info** *pvaI* Module (bsimimg): generated 3 flow node(s) during compilation.
-
- **info** *pvaI* #### Total 715 line-size(s), 110 expr(s), 41 contr(s), 0 init(s), 981 behav(s), 4 port(s)
-
  Loading pVA library /users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/idvg/hspicesimaux.pvadir/pvaRTL_linux.so...
 1****** HSPICE -- G-2012.06-ENG1 32-BIT (Jun 28 2012) RHEL32 ******             
  ******  
@@ -308,19 +297,19 @@ y
 
   analysis           time    # points   tot. iter  conv.iter
   op point           0.00           1           0
-  dc sweep           0.26         200         402
-  readin             1.06
-  errchk             0.02
+  dc sweep           0.25         200         402
+  readin             0.04
+  errchk             0.01
   setup              0.00
   output             0.00
 
 
-           peak memory used        111.42 megabytes
-           total cpu time            1.34 seconds
-           total elapsed time        5.57 seconds
-           job started at     01:38:04 04/06/2015
-           job ended   at     01:38:10 04/06/2015
+           peak memory used        107.21 megabytes
+           total cpu time            0.31 seconds
+           total elapsed time        0.72 seconds
+           job started at     17:23:15 04/07/2015
+           job ended   at     17:23:16 04/07/2015
 
 
  lic: Release hspice token(s) 
- lic: total license checkout elapse time:        0.28(s)
+ lic: total license checkout elapse time:        0.26(s)

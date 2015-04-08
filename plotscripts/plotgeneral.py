@@ -53,30 +53,38 @@ def K_generator(x,order):
 #arrange X and Y matrices
 def rearrangearray(arrayXa,elementpercylce,numberelement):
 #this function reshpae array to be printing 
-  arrayXb = arrayXa.reshape((elementpercylce, len(arrayXa)/elementpercylce))
+  arrayXb = arrayXa.reshape((elementpercylce, len(arrayXa)/elementpercylce))#arrayXa.reshape(( len(arrayXa)/elementpercylce,elementpercylce))#
   arrayXc = np.transpose(arrayXb)
-  arrayXd = arrayXc.reshape((len(arrayXa)/numberelement,numberelement))
+  arrayXd = arrayXc.reshape((len(arrayXa)/numberelement,numberelement))#arrayXc.reshape((numberelement,len(arrayXa)/numberelement))#
   arrayXe = np.transpose(arrayXd)
   return arrayXe
 
 def findelementpercylce(arrayaux):
-#this function find the number of times a element is keep constinously
+#this function return the number of entire sequence in the initial array
+  #first find number of elements repeated next to each other
   firstelement = arrayaux[0]
   lengthaux = len(arrayaux)
   flag=1
   i=1
 
   elementpercylce = 0
-  while (i<(lengthaux+1) & flag):
+  while ( (i<(lengthaux+1)) and flag):
     elementpercylce = i-1
-    print elementpercylce
-    if (abs(arrayaux(i)-firstelement)>0): #%TODO: check abs condition
+
+    if (abs(arrayaux[i]-firstelement)>0): #%TODO: check abs condition
       flag=0
     i=i+1
+
+  elementpercylce = elementpercylce+1
   
-  if (flag):
-    elementpercylce = elementpercylce+1
-  return elementpercylce
+  #this return number of time a sequence repeat
+  indexes = []
+  b = arrayaux[0:elementpercylce]
+  for i in range(len(arrayaux)-len(b)+1):
+    if sum(abs(arrayaux[i:i+len(b)] - b))<1e-15:
+      indexes.append((i, i+len(b)))
+  return len(indexes)
+  #return elementpercylce
 
 #########################################################################
 #plotgeneral class definition
@@ -116,29 +124,28 @@ class plotgeneral:
       
       #this is to identify index how to re-shape matrix for right plotting
       numberelement = 0
-      numberelementaux = len(np.unique(xarray))  
+      numberelementaux = len(np.unique(xarray)) 
       numberelementmaxpossible = len(xarray)
-      if( (np.mod(len(xarray),numberelementaux)==0) & ((numberelementmaxpossible-numberelementaux)>0) ):
+      if( (np.mod(len(xarray),numberelementaux)==0) and ((numberelementmaxpossible-numberelementaux)>0) ):
         numberelement = numberelementaux;
         elementpercylce = findelementpercylce(xarray)*numberelement
       
       if (numberelement==0):
         numberelement = numberelementmaxpossible
         elementpercylce = numberelement
-        
+      
       #reshape matrix to plot lines
       xarray = rearrangearray(xarray,elementpercylce,numberelement)
       yarray = rearrangearray(yarray,elementpercylce,numberelement)
-      
       #plot
       plt.figure(fignumber)
       
       #plot variable or its derivatives: TODO: it plot derivate with respect to x-axis, update derivative with respect to any variable
       if (self.derivativeorder<1):      
-        plt.plot( xarray, yarray, self.symbol, lw=self.lw, color=self.color  )
+        plt.plot( xarray, yarray, self.symbol, lw=self.lw)#, color=''  )
       else :
         K = K_generator(xarray[:,0],self.derivativeorder) 
-        plt.plot( xarray, K*yarray, self.symbol, lw=self.lw, color=self.color  )
+        plt.plot( xarray, K*yarray, self.symbol, lw=self.lw)#, color=self.color  )
       
       #log scale check  
       if self.ylogflag==1:

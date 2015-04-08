@@ -31,7 +31,7 @@ sim1.updateparameter('simresultfilename','pythonsimauxresult.txt')
 #include node names in the order defined in verilog code
 sim1.updateparameter('nodes',['Vd', 'Vg', 'Vs', 'Vb'])
 #values for bias conditions of nodes
-sim1.updateparameter('dcbiases',[np.linspace(0.05,1.0,3), np.linspace(0.0,2,100), [0], [0]])
+sim1.updateparameter('dcbiases',[np.linspace(0.01,1.0,10), np.linspace(0.0,2,100), [0], [0]])
 #device parameters defined to sweep in simulation
 sim1.updateparameter('deviceparameter',['Lg'])
 #device parameter values for simulation
@@ -49,12 +49,13 @@ Vx = 'Vg'
 P1 = plotgeneral.plotgeneral()
 pathandfile = sim1.simulationfolder + sim1.simresultfilename
 #plot
-P1.updateparameter('symbol','-')
-P1.updateparameter('color','r')
+P1.updateparameter('symbol','-') 
+P1.updateparameter('lw',5)
 P1.plotfiledata(pathandfile,Vx,sim1.vartosafe[0],1)
 
 #plot derivative, 1 indicates derivative order
 P1.updateparameter('derivativeorder',1)
+P1.updateparameter('lw',2)
 P1.plotfiledata(pathandfile,Vx,sim1.vartosafe[0],2)
 
 plt.show() 

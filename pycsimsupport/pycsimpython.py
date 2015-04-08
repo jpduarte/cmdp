@@ -104,6 +104,9 @@ class pycsimpython:
         stringtowrite = stringtowrite+str(allvaldc[j][i])+' '
         if (j<len(self.nodes)):
           bias.append(allvaldc[j][i])
+        else:
+          stringtoexec = 'device.'+self.deviceparameter[j-len(self.nodes)]+ '='+str(allvaldc[j][i])
+          exec stringtoexec
         j+=1  
       valuesvar,namesvar = device.analog(*tuple(bias))#model evaluation
       resultsimstring = ' '.join(map(str, valuesvar)) 

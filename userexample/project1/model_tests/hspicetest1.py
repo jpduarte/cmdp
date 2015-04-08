@@ -47,9 +47,8 @@ sim1.runsim()
 #plot
 P1 = plotgeneral.plotgeneral()
 pathandfile = sim1.simulationfolder + sim1.simresultfilename
-P1.updateparameter('color','b')
 P1.updateparameter('symbol','o')
-P1.updateparameter('lw',0)
+P1.updateparameter('lw',2)
 P1.plotfiledata(pathandfile,'Vg','Ids',1)
 
 plt.show() 

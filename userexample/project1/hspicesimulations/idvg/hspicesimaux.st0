@@ -3,7 +3,7 @@
  lic:
  lic: FLEXlm: v10.8
  lic: USER:   jpduarte             HOSTNAME: bwrcrdsl-3.eecs.berkeley.edu
- lic: HOSTID:                      PID:      15406
+ lic: HOSTID:                      PID:      29661
  lic: Using FLEXlm license file:
  lic: 1701@sunv40z-1.eecs.berkeley.edu
  lic: Checkout 1 hspice
@@ -45,16 +45,16 @@
        option post
        option ingold
        option measfo   =     1.00
- init: end read circuit files,  cpu clock=  1.09E+00 memory=    169 kb
- init: begin check errors,  cpu clock=  1.09E+00
+ init: end read circuit files,  cpu clock=  7.00E-02 memory=    169 kb
+ init: begin check errors,  cpu clock=  7.00E-02
  **warning**  No DC path to ground from node        0:                0.0
- init: end check errors,  cpu clock=  1.11E+00 memory=    169 kb
- init: begin setup matrix, pivot=     0 cpu clock=  1.11E+00
-       establish matrix -- done,  cpu clock=  1.11E+00 memory=    170 kb
-       re-order matrix -- done,  cpu clock=  1.11E+00 memory=    170 kb
- init: end setup matrix,  cpu clock=  1.11E+00 memory=    181 kb
+ init: end check errors,  cpu clock=  8.00E-02 memory=    169 kb
+ init: begin setup matrix, pivot=     0 cpu clock=  8.00E-02
+       establish matrix -- done,  cpu clock=  8.00E-02 memory=    170 kb
+       re-order matrix -- done,  cpu clock=  8.00E-02 memory=    170 kb
+ init: end setup matrix,  cpu clock=  8.00E-02 memory=    181 kb
  output: /users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/id
- sweep: dc dc0    begin, #sweeps= 200 cpu clock=  1.11E+00
- sweep: dc dc0    end,  cpu clock=  1.37E+00 memory=    185 kb
+ sweep: dc dc0    begin, #sweeps= 200 cpu clock=  9.00E-02
+ sweep: dc dc0    end,  cpu clock=  3.40E-01 memory=    185 kb
 >info:         ***** hspice job concluded
  lic: Release hspice token(s)
