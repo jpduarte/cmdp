@@ -51,11 +51,11 @@ pathandfile = sim1.simulationfolder + sim1.simresultfilename
 #plot
 P1.updateparameter('symbol','-') 
 P1.updateparameter('lw',5)
-P1.plotfiledata(pathandfile,Vx,sim1.vartosafe[0],1)
+P1.plotfiledata(pathandfile,Vx,sim1.vartosave[0],1)
 
 #plot derivative, 1 indicates derivative order
 P1.updateparameter('derivativeorder',1)
 P1.updateparameter('lw',2)
-P1.plotfiledata(pathandfile,Vx,sim1.vartosafe[0],2)
+P1.plotfiledata(pathandfile,Vx,sim1.vartosave[0],2)
 
 plt.show() 

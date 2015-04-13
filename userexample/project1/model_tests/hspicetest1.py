@@ -37,7 +37,7 @@ sim1.updateparameter('deviceparameter',['L'])
 #device parameter values for simulation
 sim1.updateparameter('deviceparametervalue',[[1000e-9]])
 #add variables to save
-sim1.updateparameter('vartosafe',['Ids','qs'])
+sim1.updateparameter('vartosave',['Ids','qs'])
 
 ###########################################################################
 ##################Simulation Run###########################################

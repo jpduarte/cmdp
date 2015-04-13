@@ -30,7 +30,7 @@ class pycsimpython:
     self.dcbiases = [np.linspace(0.05,1,2), np.linspace(0.0,1,20), [0], [0]] #sim1.updateparameter('dcbiases',[np.linspace(0.05,1,2), np.linspace(0.0,1,20), [0], [0]])#values for bias conditions of nodes
     self.deviceparameter = ['L']#sim1.updateparameter('deviceparameter',['L'])#device parameters defined to sweep in simulation
     self.deviceparametervalue = [[1000e-9]]#sim1.updateparameter('deviceparametervalue',[[1000e-9]])#device parameter values for simulation
-    self.vartosafe = ['Ids']#sim1.updateparameter('vartosafe',['Ids','qs']) #add variables to save   
+    self.vartosave = ['Ids']#sim1.updateparameter('vartosafe',['Ids','qs']) #add variables to save   
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     exec "self."+name+' = '+'value'    
