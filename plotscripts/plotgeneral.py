@@ -98,8 +98,9 @@ class plotgeneral:
     self.color = 'k'
     self.markerfacecolor = (1, 1, 1, 1)
     self.lw=1
-    self.ylogflag = '0'
+    self.ylogflag = 0
     self.derivativeorder = 0
+    self.markersize= 10
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     if type(value) == type(''):
@@ -139,18 +140,22 @@ class plotgeneral:
       yarray = rearrangearray(yarray,elementpercylce,numberelement)
       #plot
       plt.figure(fignumber)
-      
+
+      #log scale check  
+      if self.ylogflag==1:
+        yarray = abs(yarray) 
+              
       #plot variable or its derivatives: TODO: it plot derivate with respect to x-axis, update derivative with respect to any variable
       if (self.derivativeorder<1):      
-        plt.plot( xarray, yarray, self.symbol, lw=self.lw)#, color=''  )
+        plt.plot( xarray, yarray, self.symbol, lw=self.lw,markersize=self.markersize)#, color=''  )
       else :
         K = K_generator(xarray[:,0],self.derivativeorder) 
-        plt.plot( xarray, K*yarray, self.symbol, lw=self.lw)#, color=self.color  )
+        plt.plot( xarray, K*yarray, self.symbol, lw=self.lw,markersize=self.markersize)#, color=self.color  )
       
       #log scale check  
       if self.ylogflag==1:
         ax = plt.gca()
-        ax.set_yscale('log') 
+        ax.set_yscale('log')
     
     #x and y axis label          
     target.close()
