@@ -4,6 +4,7 @@
 
 import UFCMchargemodel
 import UFCMdraincurrentmodel
+import mobilitymodels
 
 from numpy import sqrt, exp
 
@@ -48,11 +49,11 @@ class compactmodel:
     self.IDSMOD           = 0
     self.DEVTYPE          = 0
     
-    #
-    self.vthrolloff = 0
-    self.vthdibl = 0
-    self.SSrolloff = 0.5
-    self.SSdibl = 0
+    #short-channel effect parameters for Vth roll-off, and DIBL, and Subthreshol-Swing
+    self.vthrolloff = 0.0
+    self.vthdibl    = 0.0
+    self.SSrolloff  = 0.0
+    self.SSdibl     = 0.0
     
   def analog(self,*args):
     Vdi,Vgi,Vsi,Vbi = args
@@ -60,49 +61,47 @@ class compactmodel:
     
     ###################################################
     self.vt      = self.k*self.T/self.q #V 
-    self.ni      = sqrt(self.Nc*self.Nv)*exp(-self.Eg/(2*self.vt))
-    #variable calculations
+    self.ni      = sqrt(self.Nc*self.Nv)*exp(-self.Eg/(2*self.vt)) #1/m^3
+    #geometrie Unified FinFET model parameter calculations
     if (self.GEOMOD==0): #double-gate, rec
-      self.Cins   = (2*self.HFIN)*self.eins/self.tins
+      self.Cins   = (2.0*self.HFIN)*self.eins/self.tins
       self.Ach    = self.TFIN*self.HFIN
-      self.Weff   = 2*self.TFIN+self.HFIN
+      self.Weff   = 2.0*self.HFIN
     if (self.GEOMOD==1): #triple-gate
-      self.Cins   = (3*self.HFIN+self.TFIN)*self.eins/self.tins
+      self.Cins   = (2.0*self.HFIN+self.TFIN)*self.eins/self.tins
       self.Ach    = self.TFIN*self.HFIN
-      self.Weff   = 2*self.TFIN      
+      self.Weff   = (2.0*self.HFIN+self.TFIN)    
     if (self.GEOMOD==5): #trapezoidal
       self.Weff   = sqrt((self.TFIN_TOP_L-self.TFIN_BASE_L)**2+self.HFIN**2)+sqrt((self.TFIN_TOP_R-self.TFIN_BASE_R)**2+self.HFIN**2)+self.TFIN_TOP_R+self.TFIN_TOP_L
       self.Cins   = self.Weff*self.eins/self.tins
       self.Ach    = self.HFIN*(self.TFIN_TOP_R+self.TFIN_TOP_L + self.TFIN_BASE_L+self.TFIN_BASE_R)/2
  
-    #####################################################     
-    if (self.DEVTYPE==-1):
-      flagdevtype = -1
+    ##################################################### 
+    #this check if this is PMOS or NMOS    
+    if (self.DEVTYPE==-1): #PMOS
+      flagdevtype = -1.0
       PHIG = -self.PHIG+2*self.phi_substrate+self.Eg
-    else:     
-      flagdevtype = 1
+    else: #NMOS
+      flagdevtype = 1.0
       PHIG = self.PHIG
-      
+
+    Vg = flagdevtype*(Vgi-Vbi)
+    Vs = flagdevtype*(Vsi-Vbi)
+    Vd = flagdevtype*(Vdi-Vbi)
+    Vb = 0.0
+    flagsweep = 0.0  
     #sweep voltage reference for drain-source
-    #bulk reference: TODO: check if this is right
-    if (Vdi<Vsi):
-      Vg = flagdevtype*(Vgi-Vbi)
-      Vs = flagdevtype*(Vdi-Vbi)
+    if (Vd<Vs):
+      Vs = Vd
       Vd = flagdevtype*(Vsi-Vbi)
-      Vb = 0
-      flagsweep = 1
-    else:
-      Vg = flagdevtype*(Vgi-Vbi)
-      Vs = flagdevtype*(Vsi-Vbi)
-      Vd = flagdevtype*(Vdi-Vbi)
-      Vb = 0
-      flagsweep = 0
-    
-    #
-    deltaVth = self.vthrolloff+self.vthdibl* (Vd-Vs)
-    nVtm = self.vt*(1+self.SSrolloff+self.SSdibl* (Vd-Vs))
+      flagsweep = 1.0
+      print "sweep"
+   
+    #short channel effect calculations
+    deltaVth = flagdevtype*(self.vthrolloff+self.vthdibl* (Vd-Vs))
+    nVtm = self.vt*(1.0+self.SSrolloff+self.SSdibl* (Vd-Vs))
  
-    #quantum mechanical effects - bias dependence
+    #quantum mechanical effects - bias dependence parameter calculations
     mx =  0.916 * self.MEL
     fieldnormalizationfactor  = nVtm*self.Cins/(self.Weff*self.ech)
     auxQMfact  = ((3.0/4.0)*3*self.HBAR*2.0*3.141516*self.q/(4*sqrt(2*mx)))**(2.0/3.0)
@@ -111,23 +110,33 @@ class compactmodel:
     #source side evaluation  
     Vch = Vs
     qs = UFCMchargemodel.unified_charge_model(Vg-deltaVth,Vch,self.q,self.k,self.T,self.eo,self.eins,self.ech,self.Eg,self.Nc,self.Nv,nVtm,self.ni,self.phi_substrate,PHIG,self.alpha_MI,self.Cins,self.Ach,self.Weff,self.Nch,QMFACTORCVfinal)
+    
     #drain side evaluation  
     Vch = Vd
     qd = UFCMchargemodel.unified_charge_model(Vg-deltaVth,Vch,self.q,self.k,self.T,self.eo,self.eins,self.ech,self.Eg,self.Nc,self.Nv,nVtm,self.ni,self.phi_substrate,PHIG,self.alpha_MI,self.Cins,self.Ach,self.Weff,self.Nch,QMFACTORCVfinal)
     
-    ids0 = UFCMdraincurrentmodel.unified_normilized_ids(qs,qd,self.q,self.k,self.T,self.eo,self.eins,self.ech,self.Eg,self.Nc,self.Nv,nVtm,self.ni,self.phi_substrate,PHIG,self.alpha_MI,self.Cins,self.Ach,self.Weff,self.Nch,self.IDSMOD)
+    #drain-source current model (normalized)
+    ids0,mu = UFCMdraincurrentmodel.unified_normilized_ids(qs,qd,self.q,self.k,self.T,self.eo,self.eins,self.ech,self.Eg,self.Nc,self.Nv,nVtm,self.ni,self.phi_substrate,PHIG,self.alpha_MI,self.Cins,self.Ach,self.Weff,self.Nch,self.IDSMOD,self.DEVTYPE)
 
-    idsfactor = (self.u0*nVtm**2*self.Cins)/self.Lg
+    #drain-source current in Ampere
+    idsfactor = (nVtm**2*self.Cins)/self.Lg
     
+    #source-drain sweep in case Vd<Vs
     if flagsweep ==1:
       ids0=-ids0
-      
+    
+    #total current counting number of fins NFIN  
     Ids = flagdevtype*ids0*idsfactor*self.NFIN
     
+    #gate charge  
     Qg = -((qs+qd)*0.5+(qs-qd)**2/(6*(2*(qs+qd)+1)))*self.Cins*nVtm*self.Lg*self.NFIN*flagdevtype
+    
+    """qm = qs
+    Ft = -((qm+(-self.q*self.Nch*self.Ach)/(nVtm*self.Cins))*self.Cins*nVtm/( self.Weff * self.ech)) #1e-2 is to transform it to V/cm
+    t = (Ft*self.Ach/self.Weff+nVtm*(1-exp((Ft/nVtm)*self.Ach/self.Weff)))/(Ft*(1-exp((Ft/nVtm)*self.Ach/self.Weff))) #1e3 to transfor to um
+    c = -((qm)*self.Cins*nVtm/( self.Weff * self.q*(t))) #1e-6 to transform it to cm^-3
+    mu,mudop,muc,muac,musr = mobilitymodels.mobility(self.DEVTYPE,Ft*1e-2,0,self.Nch*1e-6,self.T,t*1e3,c*1e-6) """   
 
-    qs=abs(qs)
-    qd=abs(qd)
     #attach values of variables to return
     variablesvalues = []
     for var in self.returnvar:

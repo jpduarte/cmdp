@@ -142,6 +142,7 @@ class plotgeneral:
       plt.figure(fignumber)
 
       #log scale check  
+      
       if self.ylogflag==1:
         yarray = abs(yarray) 
               
