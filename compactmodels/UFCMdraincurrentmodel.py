@@ -38,7 +38,7 @@ def unified_normilized_ids(qms,qmd,q,k,T,eo,eins,ech,Eg,Nc,Nv,vt,ni,phi_substrat
     Ft = -((qm+(-q*Nch*Ach)/(vt*Cins))*Cins*vt/( Weff * ech)) #1e-2 is to transform it to V/cm
     t = (Ft*Ach/Weff+vt*(1-exp((Ft/vt)*Ach/Weff)))/(Ft*(1-exp((Ft/vt)*Ach/Weff))) #1e3 to transfor to um
     c = -((qm)*Cins*vt/( Weff * q*(t))) #1e-6 to transform it to cm^-3
-    mu,mudop,muc,muac,musr = mobilitymodels.mobility(DEVTYPE,Ft*1e-2,0,Nch*1e-6,T,t*1e3,c*1e-6)    
+    mu,mudop,muc,muac,musr = mobilitymodels.mobility(DEVTYPE,Ft*1e-2,0,Nch*1e-6,T,t*1e3,c*1e-6,Nch*1e-6/(Weff*1e2))   
     ids =  mu*(idss-idsd )
   
   if (IDSMOD==1):
@@ -58,23 +58,22 @@ def unified_normilized_ids(qms,qmd,q,k,T,eo,eins,ech,Eg,Nc,Nv,vt,ni,phi_substrat
     Ft = -((qm+(-q*Nch*Ach)/(vt*Cins))*Cins*vt/( Weff * ech)) #1e-2 is to transform it to V/cm
     t = (Ft*Ach/Weff+vt*(1-exp((Ft/vt)*Ach/Weff)))/(Ft*(1-exp((Ft/vt)*Ach/Weff))) #1e3 to transfor to um
     c = -((qm)*Cins*vt/( Weff * q*(t))) #1e-6 to transform it to cm^-3
-    mu,mudop,muc,muac,musr = mobilitymodels.mobility(DEVTYPE,Ft*1e-2,0,Nch*1e-6,T,t*1e3,c*1e-6)
+    mu,mudop,muc,muac,musr,murcs = mobilitymodels.mobility(DEVTYPE,Ft*1e-2,0,Nch*1e-6,T,t*1e3,c*1e-6,Nch*1e-6/(Weff*1e2))
     ids1 = -qm*(1-1/qm)*mu*w1
     
     qm = q2
     Ft = -((qm+(-q*Nch*Ach)/(vt*Cins))*Cins*vt/( Weff * ech)) #1e-2 is to transform it to V/cm
     t = (Ft*Ach/Weff+vt*(1-exp((Ft/vt)*Ach/Weff)))/(Ft*(1-exp((Ft/vt)*Ach/Weff))) #1e3 to transfor to um
     c = -((qm)*Cins*vt/( Weff * q*(t))) #1e-6 to transform it to cm^-3
-    mu,mudop,muc,muac,musr = mobilitymodels.mobility(DEVTYPE,Ft*1e-2,0,Nch*1e-6,T,t*1e3,c*1e-6)
+    mu,mudop,muc,muac,musr,murcs = mobilitymodels.mobility(DEVTYPE,Ft*1e-2,0,Nch*1e-6,T,t*1e3,c*1e-6,Nch*1e-6/(Weff*1e2))
     ids2 = -qm*(1-1/qm)*mu*w2    
     
     qm = q3
     Ft = -((qm+(-q*Nch*Ach)/(vt*Cins))*Cins*vt/( Weff * ech)) #1e-2 is to transform it to V/cm
     t = (Ft*Ach/Weff+vt*(1-exp((Ft/vt)*Ach/Weff)))/(Ft*(1-exp((Ft/vt)*Ach/Weff))) #1e3 to transfor to um
     c = -((qm)*Cins*vt/( Weff * q*(t))) #1e-6 to transform it to cm^-3
-    mu,mudop,muc,muac,musr = mobilitymodels.mobility(DEVTYPE,Ft*1e-2,0,Nch*1e-6,T,t*1e3,c*1e-6)
+    mu,mudop,muc,muac,musr,murcs = mobilitymodels.mobility(DEVTYPE,Ft*1e-2,0,Nch*1e-6,T,t*1e3,c*1e-6,Nch*1e-6*(Weff*1e2))
     ids3 = -qm*(1-1/qm)*mu*w3     
     ids = (qmd-qms)/2.0*(ids1+ids2+ids3)
 
-  #[array([ -7.74596669e-01+0.j,  -4.78946310e-17+0.j,   7.74596669e-01+0.j]), array([ 0.55555556,  0.88888889,  0.55555556])] 
   return ids,mu

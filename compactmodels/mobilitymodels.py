@@ -1,5 +1,5 @@
 #mobility models
-from numpy import sqrt, exp
+from numpy import sqrt, exp, log
 
 def erf(x):
   # save the sign of x
@@ -20,29 +20,35 @@ def erf(x):
   return sign*y 
 
 
-def mobility(DEVTYPE,Ft,Na,Nd,T,t,carrier):
+def mobility(DEVTYPE,Ft,Na,Nd,T,t,carrier,Ndepl):
   N_A0 = Na
   N_D0 = Nd
-  x = t*1e-4
+  x = t*1e-4 #convernt um to cm
+  #########################################################################################
   #mobility due to phonon scattering
+  #########################################################################################
   ul = 470.5 #cm^2/Vs
   xi = 2.2
   
   muconst = ul*(T/300.0)**(-xi)
 
+  #########################################################################################
   #Masetti Model: doping dependent
+  #########################################################################################
   umin1 = 44.9
   umin2 = 0.0
-  u1 = 29.0
-  Pc = 9.23e16
-  Cr = 2.23e17
-  Cs = 6.1e20
+  u1    = 29.0
+  Pc    = 9.23e16
+  Cr    = 2.23e17
+  Cs    = 6.1e20
   alpha = 0.719
-  beta = 2.0
+  beta  = 2.0
 
   mudop = umin1*exp(-Pc/(N_A0+N_D0))+(muconst-umin2)/(1.0+((N_A0+N_D0)/Cr)**alpha)-u1/(1.0+(Cs/(N_A0+N_D0))**beta)
 
+  #########################################################################################
   #enhanced lombardi model
+  #########################################################################################
   B = 9.925e6
   C = 15e3#2.947e3
   N0 = 1.0
@@ -60,7 +66,9 @@ def mobility(DEVTYPE,Ft,Na,Nd,T,t,carrier):
   #contribution attributed to surface roughness scattering
   musr = (((Ft/Fref)**Astar/delta+Ft**3.0/eta)**(-1.0))/exp(-x/lcrit)
 
+  #########################################################################################
   #Coulomb Scattering
+  #########################################################################################
   Ninv = Nd 
   #t = #um t is the local layer thicknes  
   #c = #concentration mobile chargers per cm^3
@@ -108,6 +116,30 @@ def mobility(DEVTYPE,Ft,Na,Nd,T,t,carrier):
   fFt = 1.0/(1.0+exp(S*Ft**(2.0/3.0)/T+St/((t+t0)**2.0*T)-p))"""
   muc = muc2d #fFt*muc3d+(1-fFt)*muc2d TODO: check this effect
   
-  mu = (1.0/mudop+1.0/muac+1.0/musr)**(-1.0)
-  return mu*1e-4,mudop*1e-4,muc*1e-4,muac*1e-4,musr*1e-4 #*1e-4 factor is to transfor in m^2/Vs
+  #########################################################################################
+  #Remote Coulomb Scattering Model
+  #########################################################################################
+  murcs0  =  149.0 # cm^2/Vs
+  gamma1  = -0.23187
+  gamma2  = 2.1
+  gamma3  = 0.4
+  gamma4  = 0.05
+  gamma5  = 1.0
+  s       = 0.00001#0.1
+  c0      = 3.0e16 #cm^-3
+  dcrit   = 0.0 # cm
+  lcrit   = 1e-6 # cm
+  lcrithk = 1e-6 # cm
+  xi      = 1.3042e7 # V-1cm-1
+  
+  dist = x
+  
+  fFt = 1.0-exp(-xi*Ft/Ndepl)
+  gscreening = s + carrier/(c0*(Nd/3e16)**gamma5)
+  Drcs = exp(-(dist+dcrit)/lcrit)
+  Drcs_hk = 1.0 #exp(-disthk/lcrithk)
+  murcs = (murcs0*(Nd/3e16)**gamma1*(T/300.0)**gamma2*(gscreening)**(gamma3+gamma4*log(Nd/3e16))) #/(Drcs*Drcs_hk)
+  #########################################################################################
+  mu = (1.0/mudop+1.0/muac+1.0/musr+1/murcs)**(-1.0)
+  return mu*1e-4,mudop*1e-4,muc*1e-4,muac*1e-4,musr*1e-4,murcs*1e-4#murcs*1e-4 #*1e-4 factor is to transfor in m^2/Vs
 
