@@ -50,13 +50,13 @@ def mobility(DEVTYPE,Ft,Na,Nd,T,t,carrier,Ndepl):
   #enhanced lombardi model
   #########################################################################################
   B = 9.925e6
-  C = 15e3#2.947e3
+  C = 2.947e3#15e3#
   N0 = 1.0
   N2 = 1.0
   lambdam = 0.0317
   k = 1.0
-  delta = 0.7e14#2.0546e14
-  eta = 0.1e30#2.0546e30
+  delta = 2.0546e14#0.7e14#
+  eta = 2.0546e30#0.1e30#
   lcrit = 1e-6 #cm
   Astar = 2.0
   Fref = 1
@@ -142,4 +142,10 @@ def mobility(DEVTYPE,Ft,Na,Nd,T,t,carrier,Ndepl):
   #########################################################################################
   mu = (1.0/mudop+1.0/muac+1.0/musr+1/murcs)**(-1.0)
   return mu*1e-4,mudop*1e-4,muc*1e-4,muac*1e-4,musr*1e-4,murcs*1e-4#murcs*1e-4 #*1e-4 factor is to transfor in m^2/Vs
+  
+"""qm = qs
+Ft = -((qm+(-self.q*self.Nch*self.Ach)/(nVtm*self.Cins))*self.Cins*nVtm/( self.Weff * self.ech)) #1e-2 is to transform it to V/cm
+t = (Ft*self.Ach/self.Weff+nVtm*(1-exp((Ft/nVtm)*self.Ach/self.Weff)))/(Ft*(1-exp((Ft/nVtm)*self.Ach/self.Weff))) #1e3 to transfor to um
+c = -((qm)*self.Cins*nVtm/( self.Weff * self.q*(t))) #1e-6 to transform it to cm^-3
+mu,mudop,muc,muac,musr = mobilitymodels.mobility(self.DEVTYPE,Ft*1e-2,0,self.Nch*1e-6,self.T,t*1e3,c*1e-6) """   
 

@@ -95,7 +95,7 @@ class compactmodel:
       Vs = Vd
       Vd = flagdevtype*(Vsi-Vbi)
       flagsweep = 1.0
-      print "sweep"
+      #print "sweep"
    
     #short channel effect calculations
     deltaVth = flagdevtype*(self.vthrolloff+self.vthdibl* (Vd-Vs))
@@ -116,7 +116,7 @@ class compactmodel:
     qd = UFCMchargemodel.unified_charge_model(Vg-deltaVth,Vch,self.q,self.k,self.T,self.eo,self.eins,self.ech,self.Eg,self.Nc,self.Nv,nVtm,self.ni,self.phi_substrate,PHIG,self.alpha_MI,self.Cins,self.Ach,self.Weff,self.Nch,QMFACTORCVfinal)
     
     #drain-source current model (normalized)
-    ids0,mu = UFCMdraincurrentmodel.unified_normilized_ids(qs,qd,self.q,self.k,self.T,self.eo,self.eins,self.ech,self.Eg,self.Nc,self.Nv,nVtm,self.ni,self.phi_substrate,PHIG,self.alpha_MI,self.Cins,self.Ach,self.Weff,self.Nch,self.IDSMOD,self.DEVTYPE)
+    ids0,mu,vdsat = UFCMdraincurrentmodel.unified_normilized_ids(qs,qd,self.q,self.k,self.T,self.eo,self.eins,self.ech,self.Eg,self.Nc,self.Nv,nVtm,self.ni,self.phi_substrate,PHIG,self.alpha_MI,self.Cins,self.Ach,self.Weff,self.Nch,self.IDSMOD,self.DEVTYPE,self.Lg,Vd-Vs,Vg,QMFACTORCVfinal,deltaVth)
 
     #drain-source current in Ampere
     idsfactor = (nVtm**2*self.Cins)/self.Lg
@@ -131,12 +131,6 @@ class compactmodel:
     #gate charge  
     Qg = -((qs+qd)*0.5+(qs-qd)**2/(6*(2*(qs+qd)+1)))*self.Cins*nVtm*self.Lg*self.NFIN*flagdevtype
     
-    """qm = qs
-    Ft = -((qm+(-self.q*self.Nch*self.Ach)/(nVtm*self.Cins))*self.Cins*nVtm/( self.Weff * self.ech)) #1e-2 is to transform it to V/cm
-    t = (Ft*self.Ach/self.Weff+nVtm*(1-exp((Ft/nVtm)*self.Ach/self.Weff)))/(Ft*(1-exp((Ft/nVtm)*self.Ach/self.Weff))) #1e3 to transfor to um
-    c = -((qm)*self.Cins*nVtm/( self.Weff * self.q*(t))) #1e-6 to transform it to cm^-3
-    mu,mudop,muc,muac,musr = mobilitymodels.mobility(self.DEVTYPE,Ft*1e-2,0,self.Nch*1e-6,self.T,t*1e3,c*1e-6) """   
-
     #attach values of variables to return
     variablesvalues = []
     for var in self.returnvar:
