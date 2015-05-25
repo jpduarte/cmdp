@@ -1,8 +1,28 @@
 #UFCM charge
+#Juan Pablo Duarte, jpduarte@berkeley.edu
+#BSIM Group, UC Berkeley
 
 from numpy import exp,log,sqrt
 
-def unified_charge_model(Vg,Vch,q,k,T,eo,eins,ech,Eg,Nc,Nv,vt,ni,phi_substrate,phi_gate,alpha_MI,Cins,Ach,Weff,Nch,QMF) :
+def unified_charge_model(self,Vg,Vch,vt,phi_gate,QMF) :
+
+  q = self.q
+  k = self.k
+  T = self.T
+  eo = self.eo
+  eins = self.eins
+  ech = self.ech
+  Eg = self.Eg
+  Nc = self.Nc
+  Nv = self.Nv
+  ni = self.ni
+  phi_substrate = self.phi_substrate
+  alpha_MI = self.alpha_MI
+  Cins = self.Cins
+  Ach = self.Ach
+  Weff = self.Weff
+  Nch = self.Nch
+
   rc  = (2.0*Cins/(Weff**2.0*ech/Ach))
   qdep  = (-q*Nch*Ach)/(vt*Cins)
   vfb_n = (phi_gate - phi_substrate -Eg/2.0-vt*log(Nch/ni))/vt

@@ -13,6 +13,7 @@ class compactmodel:
     self.name = name
     self.version = 'v1'
     self.nodenames = ['vd','vg','vs','vb']
+    
     #TODO: add units to each quantity   
     self.q       = 1.6e-19 #C
     self.k       = 1.380650e-23 
@@ -49,11 +50,86 @@ class compactmodel:
     self.IDSMOD           = 0
     self.DEVTYPE          = 0
     
+    self.MODmudop         = 1
+    self.MODmuac          = 1
+    self.MODmusr          = 1
+    self.MODmurcs         = 1
+    self.MODmuc           = 1
+    
     #short-channel effect parameters for Vth roll-off, and DIBL, and Subthreshol-Swing
     self.vthrolloff = 0.0
     self.vthdibl    = 0.0
     self.SSrolloff  = 0.0
     self.SSdibl     = 0.0
+    
+    #current saturation
+    self.betavsat = 2.0 
+    self.vsat = 8.37e6*1e-2# m/s   
+    
+    self.ul = 470.5 #cm^2/Vs
+    self.xi = 2.2  
+    
+    #Masetti Model: doping dependent
+    self.masetti_umin1 = 44.9
+    self.masetti_umin2 = 0.0
+    self.masetti_u1    = 29.0
+    self.masetti_Pc    = 9.23e16
+    self.masetti_Cr    = 2.23e17
+    self.masetti_Cs    = 6.1e20
+    self.masetti_alpha = 0.719
+    self.masetti_beta  = 2.0    
+    
+    self.lombardi_B = 9.925e6
+    self.lombardi_C = 15e3#
+    self.lombardi_N0 = 1.0
+    self.lombardi_N2 = 1.0
+    self.lombardi_lambdam = 0.0317
+    self.lombardi_k = 1.0
+    self.lombardi_delta = 0.7e14#
+    self.lombardi_eta = 0.1e30#
+    self.lombardi_lcrit = 1e-6 #cm
+    self.lombardi_Astar = 2.0
+    self.lombardi_Fref = 1    
+    
+    self.coulomb_D1inv = 135.0 #cm^2/Vs
+    self.coulomb_alpha1inv = 0.0
+
+    self.coulomb_cother = 0.0
+    self.coulomb_v0inv = 1.5
+
+    self.coulomb_v1inv = 2.0
+    self.coulomb_D2inv =  40.0 #cm^2/Vs
+    self.coulomb_alpha2inv = 0.0
+    self.coulomb_v2inv = 0.5
+   
+    self.coulomb_t1 = 0.0003 #um
+    self.coulomb_tcoulomb = 0.0 #um
+    
+    self.coulomb_S = 0.3042 #K(cm/V)^(2/3)
+    self.coulomb_St = 0.0 #K(um)^2
+    self.coulomb_t0 = 0.0005 #um
+    
+    self.coulomb_m_over_m0 = 1
+    
+    self.coulomb_mumax = 470.5
+    self.coulomb_mumin = 44.9
+    self.coulomb_alpha = 0.719
+    
+    self.coulomb_Nref = 2.23e17 #cm^-3
+    self.coulomb_p = 4.0
+    
+    self.rcoulomb_murcs0  =  149.0 # cm^2/Vs
+    self.rcoulomb_gamma1  = -0.23187
+    self.rcoulomb_gamma2  = 2.1
+    self.rcoulomb_gamma3  = 0.4
+    self.rcoulomb_gamma4  = 0.05
+    self.rcoulomb_gamma5  = 1.0
+    self.rcoulomb_s       = 0.1
+    self.rcoulomb_c0      = 3.0e16 #cm^-3
+    self.rcoulomb_dcrit   = 0.0 # cm
+    self.rcoulomb_lcrit   = 1e-6 # cm
+    self.rcoulomb_lcrithk = 1e-6 # cm
+    self.rcoulomb_xi      = 1.3042e7 # V-1cm-1
     
   def analog(self,*args):
     Vdi,Vgi,Vsi,Vbi = args
@@ -105,18 +181,14 @@ class compactmodel:
     mx =  0.916 * self.MEL
     fieldnormalizationfactor  = nVtm*self.Cins/(self.Weff*self.ech)
     auxQMfact  = ((3.0/4.0)*3*self.HBAR*2.0*3.141516*self.q/(4*sqrt(2*mx)))**(2.0/3.0)
-    QMFACTORCVfinal   = self.QMFACTORCV*auxQMfact*(fieldnormalizationfactor)**(2.0/3.0)*(1/(self.q*nVtm))       
+    QMf   = self.QMFACTORCV*auxQMfact*(fieldnormalizationfactor)**(2.0/3.0)*(1/(self.q*nVtm))       
        
-    #source side evaluation  
+    #source side evaluation for charge  
     Vch = Vs
-    qs = UFCMchargemodel.unified_charge_model(Vg-deltaVth,Vch,self.q,self.k,self.T,self.eo,self.eins,self.ech,self.Eg,self.Nc,self.Nv,nVtm,self.ni,self.phi_substrate,PHIG,self.alpha_MI,self.Cins,self.Ach,self.Weff,self.Nch,QMFACTORCVfinal)
-    
-    #drain side evaluation  
-    Vch = Vd
-    qd = UFCMchargemodel.unified_charge_model(Vg-deltaVth,Vch,self.q,self.k,self.T,self.eo,self.eins,self.ech,self.Eg,self.Nc,self.Nv,nVtm,self.ni,self.phi_substrate,PHIG,self.alpha_MI,self.Cins,self.Ach,self.Weff,self.Nch,QMFACTORCVfinal)
-    
+    qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf)
+   
     #drain-source current model (normalized)
-    ids0,mu,vdsat = UFCMdraincurrentmodel.unified_normilized_ids(qs,qd,self.q,self.k,self.T,self.eo,self.eins,self.ech,self.Eg,self.Nc,self.Nv,nVtm,self.ni,self.phi_substrate,PHIG,self.alpha_MI,self.Cins,self.Ach,self.Weff,self.Nch,self.IDSMOD,self.DEVTYPE,self.Lg,Vd-Vs,Vg,QMFACTORCVfinal,deltaVth)
+    ids0,mu,vdsat,qd = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth)
 
     #drain-source current in Ampere
     idsfactor = (nVtm**2*self.Cins)/self.Lg
