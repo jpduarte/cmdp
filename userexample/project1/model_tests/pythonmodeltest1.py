@@ -1,7 +1,7 @@
 #example: run hspice Id-Vg using python
 #Juan Duarte, BSIM Group
 
-rootfolder = '/users/jpduarte/research'
+rootfolder = '/home/juan/research'
 
 #indicate path for folders containing required classes
 import sys
@@ -37,7 +37,7 @@ sim1.updateparameter('deviceparameter',['Lg'])
 #device parameter values for simulation
 sim1.updateparameter('deviceparametervalue',[[1000e-9]])
 #add variables to save  
-sim1.updateparameter('vartosave',['Ids','qd'])#no ok: CBGSI
+sim1.updateparameter('vartosave',['Ids','qd'])
 
 ###########################################################################
 ##################Simulation Excecution####################################

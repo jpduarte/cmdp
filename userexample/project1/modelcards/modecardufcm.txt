@@ -1,2 +1,79 @@
 *model card ufcm
 +Lg=1e-9
++DEVTYPE= 1
++GEOMOD = 1
++IDSMOD = 1
+
++MODmudop = 1
++MODmuac = 0
++MODmusr = 0
++MODmurcs = 0
++MODmuc = 0
+
+*parameters for mobility and current saturation
++betavsat = 2.0 
++vsat = 1e5   
+    
++ul = 1417.0
++xi = 2.5  
+    
+*Masetti Model: doping dependent
++masetti_umin1 = 52.2
++masetti_umin2 = 52.2
++masetti_u1    = 43.4
++masetti_Pc    = 0.0
++masetti_Cr    = 9.68e16
++masetti_Cs    = 3.43e20
++masetti_alpha = 0.680
++masetti_beta  = 2.0    
+    
++lombardi_B = 4.75e7
++lombardi_C = 5.8e2
++lombardi_N0 = 1.0
++lombardi_N2 = 1.0
++lombardi_lambdam = 0.1250
++lombardi_k = 1.0
++lombardi_delta = 5.82e14
++lombardi_eta = 5.82e30
++lombardi_lcrit = 1e-6 
++lombardi_Astar = 2.0
++lombardi_Fref = 1    
+    
++coulomb_D1inv = 135.0 
++coulomb_alpha1inv = 0.0
+
++coulomb_v0inv = 1.5
+
++coulomb_v1inv = 2.0
++coulomb_D2inv =  40.0
++coulomb_alpha2inv = 0.0
++coulomb_v2inv = 0.5
+   
++coulomb_t1 = 0.0003 
++coulomb_tcoulomb = 0.0 
+    
++coulomb_S = 0.3042 
++coulomb_St = 0.0 
++coulomb_t0 = 0.0005 
+    
++coulomb_m_over_m0 = 1
+    
++coulomb_mumax = 1417.0
++coulomb_mumin = 52.2
++coulomb_alpha = 0.68
+    
++coulomb_Nref = 9.68e16
++coulomb_p = 4.0
+    
++rcoulomb_murcs0  =  149.0 
++rcoulomb_gamma1  = -0.23187
++rcoulomb_gamma2  = 2.1
++rcoulomb_gamma3  = 0.4
++rcoulomb_gamma4  = 0.05
++rcoulomb_gamma5  = 1.0
++rcoulomb_s       = 0.1
++rcoulomb_c0      = 3.0e16 
++rcoulomb_dcrit   = 0.0 
++rcoulomb_lcrit   = 1e-6 
++rcoulomb_lcrithk = 1e-6 
++rcoulomb_xi      = 1.3042e7 

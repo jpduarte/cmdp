@@ -1,4 +1,4 @@
-#UFCM charge
+#This function is to calculate the saturation drain voltage for a given saturation drain charge
 #Juan Pablo Duarte, jpduarte@berkeley.edu
 #BSIM Group, UC Berkeley
 

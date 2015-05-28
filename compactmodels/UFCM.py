@@ -5,6 +5,7 @@
 import UFCMchargemodel
 import UFCMdraincurrentmodel
 import mobilitymodels
+import UFCMidsf1update
 
 from numpy import sqrt, exp
 
@@ -18,7 +19,7 @@ class compactmodel:
     self.q       = 1.6e-19 #C
     self.k       = 1.380650e-23 
     self.T       = 300 #K
-    self.HBAR    = 1.05457e-34 # untis are Joule-sec
+    self.HBAR    = 1.05457e-34 # Joule-sec
     self.MEL     = 9.11e-31 # kg
     self.eo      = 8.854000e-12 # F / m
     self.eins    = 3.9*self.eo # F / m 
@@ -26,7 +27,6 @@ class compactmodel:
     self.Eg 	   = 1.169640 #eV
     self.Nc      = 2.890000e+25 #1/m^3
     self.Nv 	   = 3.140000e+25 #1/m^3 
-    self.u0      = 40e-3 # m^2V^-1s^-1
     #device dimensions and parameters
     self.HFIN             = 20e-9 #m
     self.TFIN             = 10e-9 #m   
@@ -45,11 +45,15 @@ class compactmodel:
     self.returnvar        = ['Ids']
     self.QMFACTORCV       = 0
     self.NFIN             = 1
+    self.Rs = 0
+    self.Rd = 0
+    self.countRmodel      = 3
     #UFCM parameters
     self.GEOMOD           = 0
     self.IDSMOD           = 0
     self.DEVTYPE          = 0
     
+    #mobility flags, 0 do not use that model, 1 for use the model
     self.MODmudop         = 1
     self.MODmuac          = 1
     self.MODmusr          = 1
@@ -62,6 +66,7 @@ class compactmodel:
     self.SSrolloff  = 0.0
     self.SSdibl     = 0.0
     
+    #mobility parameters for pmos silicon devices
     #current saturation
     self.betavsat = 2.0 
     self.vsat = 8.37e6*1e-2# m/s   
@@ -80,13 +85,13 @@ class compactmodel:
     self.masetti_beta  = 2.0    
     
     self.lombardi_B = 9.925e6
-    self.lombardi_C = 15e3#
+    self.lombardi_C = 2.947e3#
     self.lombardi_N0 = 1.0
     self.lombardi_N2 = 1.0
     self.lombardi_lambdam = 0.0317
     self.lombardi_k = 1.0
-    self.lombardi_delta = 0.7e14#
-    self.lombardi_eta = 0.1e30#
+    self.lombardi_delta = 2.0546e14#
+    self.lombardi_eta = 2.0546e30#
     self.lombardi_lcrit = 1e-6 #cm
     self.lombardi_Astar = 2.0
     self.lombardi_Fref = 1    
@@ -94,7 +99,7 @@ class compactmodel:
     self.coulomb_D1inv = 135.0 #cm^2/Vs
     self.coulomb_alpha1inv = 0.0
 
-    self.coulomb_cother = 0.0
+    #self.coulomb_cother = 0.0
     self.coulomb_v0inv = 1.5
 
     self.coulomb_v1inv = 2.0
@@ -118,6 +123,7 @@ class compactmodel:
     self.coulomb_Nref = 2.23e17 #cm^-3
     self.coulomb_p = 4.0
     
+    #remote coulomb scattering, for high-k dielectric
     self.rcoulomb_murcs0  =  149.0 # cm^2/Vs
     self.rcoulomb_gamma1  = -0.23187
     self.rcoulomb_gamma2  = 2.1
@@ -129,31 +135,33 @@ class compactmodel:
     self.rcoulomb_dcrit   = 0.0 # cm
     self.rcoulomb_lcrit   = 1e-6 # cm
     self.rcoulomb_lcrithk = 1e-6 # cm
-    self.rcoulomb_xi      = 1.3042e7 # V-1cm-1
+    self.rcoulomb_xi      = 1.3042e7 # V-1cm-1   
     
   def analog(self,*args):
-    Vdi,Vgi,Vsi,Vbi = args
-    """this function returns the drain current or other variables for given bias"""
+    """this function returns the drain current or other variables for given bias"""  
     
     ###################################################
+    ########Bias independent calculations##############
+    ###################################################
+    #temperature dependent vt, and ni
     self.vt      = self.k*self.T/self.q #V 
     self.ni      = sqrt(self.Nc*self.Nv)*exp(-self.Eg/(2*self.vt)) #1/m^3
-    #geometrie Unified FinFET model parameter calculations
-    if (self.GEOMOD==0): #double-gate, rec
+    
+    #geometrie Unified FinFET model parameter calculations, TODO: add more geometries
+    if (self.GEOMOD==0): #double-gate, rectangular
       self.Cins   = (2.0*self.HFIN)*self.eins/self.tins
       self.Ach    = self.TFIN*self.HFIN
       self.Weff   = 2.0*self.HFIN
-    if (self.GEOMOD==1): #triple-gate
+    if (self.GEOMOD==1): #triple-gate, rectangular
       self.Cins   = (2.0*self.HFIN+self.TFIN)*self.eins/self.tins
       self.Ach    = self.TFIN*self.HFIN
       self.Weff   = (2.0*self.HFIN+self.TFIN)    
-    if (self.GEOMOD==5): #trapezoidal
+    if (self.GEOMOD==2): #triple-gate, trapezoidal
       self.Weff   = sqrt((self.TFIN_TOP_L-self.TFIN_BASE_L)**2+self.HFIN**2)+sqrt((self.TFIN_TOP_R-self.TFIN_BASE_R)**2+self.HFIN**2)+self.TFIN_TOP_R+self.TFIN_TOP_L
       self.Cins   = self.Weff*self.eins/self.tins
       self.Ach    = self.HFIN*(self.TFIN_TOP_R+self.TFIN_TOP_L + self.TFIN_BASE_L+self.TFIN_BASE_R)/2
- 
-    ##################################################### 
-    #this check if this is PMOS or NMOS    
+    
+    #this check if this is PMOS or NMOS device  
     if (self.DEVTYPE==-1): #PMOS
       flagdevtype = -1.0
       PHIG = -self.PHIG+2*self.phi_substrate+self.Eg
@@ -161,6 +169,11 @@ class compactmodel:
       flagdevtype = 1.0
       PHIG = self.PHIG
 
+    ###################################################
+    ##########Bias dependent calculations##############
+    ###################################################
+    Vdi,Vgi,Vsi,Vbi = args
+    
     Vg = flagdevtype*(Vgi-Vbi)
     Vs = flagdevtype*(Vsi-Vbi)
     Vd = flagdevtype*(Vdi-Vbi)
@@ -171,9 +184,13 @@ class compactmodel:
       Vs = Vd
       Vd = flagdevtype*(Vsi-Vbi)
       flagsweep = 1.0
-      #print "sweep"
+      Rdaux = self.Rs
+      Rsaux = self.Rd
+    else:
+      Rdaux = self.Rd
+      Rsaux = self.Rs    
    
-    #short channel effect calculations
+    #short channel effect calculations: threshold voltage shift and subthreshold swing degradation
     deltaVth = flagdevtype*(self.vthrolloff+self.vthdibl* (Vd-Vs))
     nVtm = self.vt*(1.0+self.SSrolloff+self.SSdibl* (Vd-Vs))
  
@@ -190,18 +207,38 @@ class compactmodel:
     #drain-source current model (normalized)
     ids0,mu,vdsat,qd = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth)
 
-    #drain-source current in Ampere
+    #drain-source current in Ampere [C/s]
     idsfactor = (nVtm**2*self.Cins)/self.Lg
+    idsfinal = ids0*idsfactor
+    
+    #initial guess for drain-source current with source/drain resistances
+    if ((Vd-Vs)**2>1e-20):
+      idsfinal = idsfinal*(Vd-Vs)/((Vd-Vs)+idsfinal*(Rdaux+Rsaux))
+    else:
+      idsfinal = idsfinal
+    
+    #iteration to solve drain-source current including source and drain resistances
+    count=0
+    while (count<self.countRmodel):  
+      Vch = Vs+Rsaux*idsfinal
+      qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf)
+      ids0,mu,vdsat,qd = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd-Rdaux*idsfinal,Vs+Rsaux*idsfinal,Vg,QMf,deltaVth)
+      
+      #Newton iteration update    
+      f0 = idsfinal-ids0*idsfactor
+      f1 = UFCMidsf1update.f1(self,qs,qd,nVtm,PHIG,Rsaux,Rdaux)
+      idsfinal = idsfinal-f0/f1
+      count+=1
     
     #source-drain sweep in case Vd<Vs
     if flagsweep ==1:
-      ids0=-ids0
+      idsfinal=-idsfinal
     
     #total current counting number of fins NFIN  
-    Ids = flagdevtype*ids0*idsfactor*self.NFIN
+    Ids = flagdevtype*idsfinal*self.NFIN
     
-    #gate charge  
-    Qg = -((qs+qd)*0.5+(qs-qd)**2/(6*(2*(qs+qd)+1)))*self.Cins*nVtm*self.Lg*self.NFIN*flagdevtype
+    #gate charge, TODO: add source/drain terminal charges 
+    Qg = -((qs+qd)*0.5-(qs-qd)**2/(6*(-2*(qs+qd)+1)))*self.Cins*nVtm*self.Lg*self.NFIN*flagdevtype
     
     #attach values of variables to return
     variablesvalues = []

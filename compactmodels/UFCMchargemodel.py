@@ -1,4 +1,5 @@
-#UFCM charge
+#UFCM charge model it is based on; Unified FinFET Compact Model: Modelling Trapezoidal Triple-Gate FinFETs
+#this includes quantum mechanical bias dependent effects
 #Juan Pablo Duarte, jpduarte@berkeley.edu
 #BSIM Group, UC Berkeley
 
