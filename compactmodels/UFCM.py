@@ -136,7 +136,9 @@ class compactmodel:
     self.rcoulomb_lcrit   = 1e-6 # cm
     self.rcoulomb_lcrithk = 1e-6 # cm
     self.rcoulomb_xi      = 1.3042e7 # V-1cm-1   
-    
+  def updateparameter(self,name,value):
+    #this funtion update a parameter in the model
+    exec "self."+name+' = '+'value'   
   def analog(self,*args):
     """this function returns the drain current or other variables for given bias"""  
     
