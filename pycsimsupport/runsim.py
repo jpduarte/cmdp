@@ -2,7 +2,6 @@ import os, sys
 import time
 import supportfunctions
 import imp # to import class using path directly
-
 import numpy as np
 
 def isfloat(value):

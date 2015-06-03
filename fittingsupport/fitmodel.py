@@ -7,6 +7,11 @@ import imp # to import class using path directly
 import numpy as np
 from numpy import loadtxt
 import scipy.optimize as optimization
+import supportfunctions
+import shutil #to copy a file
+import fileinput
+import functionauxfit
+
 '''
 arrange all data input
 
@@ -17,35 +22,20 @@ param to fit
 update
 '''
 
+def modelcardupdate(filename, parameter, value):  
+  print "updating modelcard with paramter " + parameter + ' = ' +str(value)    
+  for line in fileinput.input(filename, inplace=True):
+    if parameter in line:
+      print '+'+parameter+' = ' + str(value)+'\n'
+    else:
+      print line
+
 def isfloat(value):
   try:
     float(value)
     return True
   except ValueError:
     return False
-    
-def fungen1(self,device):
-  #create function of x input, and 1 variable to optimize "a"
-  def functofit(x,a):
-    #update variable to optimize
-    for paramtofit in self.paramtofit:
-      device.updateparameter(paramtofit,a)   
-    #evaluate x 2D array, it contains bias and parameters      
-    rows = len(x[:,0])
-    i=0
-    y = []
-    while (i<rows):
-      #get biases
-      bias = x[i,0:len(self.nodes)]
-      j=0
-      for deviceparameter in self.deviceparameter:
-        device.updateparameter(deviceparameter,x[i,len(self.nodes)+j])       
-        j+=1
-      valuesvar,namesvar = device.analog(*tuple(bias))
-      y.append(valuesvar[0])
-      i+=1
-    return np.array(y)
-  return functofit   
    
 class fitmodelclass:
   def __init__(self,name):
@@ -54,7 +44,8 @@ class fitmodelclass:
     self.devicesymbol = 'X' #add device symbol for Hspice, ex: sim1.updateparameter('devicesymbol','X')
     self.analysis = 'dc' #sim1.updateparameter('analysis','dc')#define type of simulations
     self.modelpath = '' #sim1.updateparameter('modelpath','/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg.va')
-    self.fitcardpath = '' #sim1.updateparameter('modelcardpath','/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/benchmark_tests/modelcard.nmos')#add path to model card of device under study
+    self.modelcardpath = '' #sim1.updateparameter('modelcardpath','/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/benchmark_tests/modelcard.nmos')#add path to model card of device under study
+    self.modelcardpathfinal = ''
     self.fitfolder = ''#sim1.updateparameter('simulationfolder',rootfolder+'/cmdp/user1/project1/hspicesimulations/idvg/')#add path to folder which will contain simulation files
     self.fitfilename = 'anyname'#sim1.updateparameter('simfilename','hspicesimaux')#define simulation file name
     self.fitresultfilename = 'outname.txt'#sim1.updateparameter('simresultfilename','hspicesimauxresult.txt')#define simulation final results file 
@@ -64,18 +55,20 @@ class fitmodelclass:
     self.deviceparameterrange = [[50e-9,100e-9]]#indicate range where fit has to be done
     self.vartofitdata = ['Id']#variable that will be use as reference for fitting, from data  
     self.vartofitmodel = ['Ids']#variable that will be use as reference for fitting, from model      
+    self.vartosave = ['Ids']
     self.alldatafile = 'alldata.txt'
     self.paramtoinclude = ['Ids','Vd']#this is to include parameters in final data file which contains all the data
     self.paramtofit = ['tins']
+  ############################################################################
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     exec "self."+name+' = '+'value'    
-
+  ############################################################################
   def resetdata(self):
     #this function erase file with all data so it can be created again
     if os.path.isfile(self.fitfolder+self.alldatafile): 
       os.remove(self.fitfolder+self.alldatafile)     
- 
+  ############################################################################
   def adddata(self,datapathandfile,extraparmnames,extraparmvalues):
     #create folder if does not exist to save files for fitting process
     if not os.path.exists(self.fitfolder):
@@ -117,6 +110,7 @@ class fitmodelclass:
     
   ############################################################################      
   def fitparameters(self):
+    print "Starting fit preparation"
     filealldata = open(self.fitfolder+self.alldatafile, 'r')
     header = str.split(filealldata.readline())
     #get index for parameters and biases
@@ -138,6 +132,7 @@ class fitmodelclass:
     
     #check what biases and parameters fullfill fit requerements, biasparam and ydata is created 
     datalist = loadtxt(filealldata,skiprows = 1)
+    filealldata.close()
     i=0
     k=0
     biasparam = []
@@ -181,7 +176,58 @@ class fitmodelclass:
     device =  deviceaux.compactmodel('X1')
 
     #update paramter from modelcard
+    #TODO: make this a function outside, because many parts use this modelcard to parameter setting
     modelcard = open(self.modelcardpath, 'r') 
+    for line in modelcard:
+      if (line.find('+')>-1):
+        line = line.replace('+', '')
+        line = line.replace('=', ' ')
+        #TODO replace all n,u,p,f, units by number so users can write it in that way as well
+        stringinline = str.split(line)
+        valueparam = stringinline[-1]
+        if (isfloat(valueparam)):
+          stringtoexec = 'device.'+stringinline[0]+ '='+valueparam
+        else:
+          stringtoexec = 'device.'+stringinline[0] +'='+'device.'+valueparam        
+        exec stringtoexec     
+    modelcard.close()
+    device.returnvar = self.vartofitmodel 
+    
+    #create parameterinitial initial guess, parameterinitial
+    parameterinitial = []
+    for paramtofit in self.paramtofit:
+      exec 'parameterinitial.append(device.'+paramtofit+')' 
+    parameterinitial = np.array(parameterinitial)
+    #create function to fit based on parameters to fit
+    functofit = functionauxfit.fungen(self,device)
+    
+    #curve fitting
+    print "model fitting using optimization.curve_fit"
+    parametersfit = optimization.curve_fit(functofit, biasandparam, ydata, parameterinitial)
+
+    #update model card
+    shutil.copyfile(self.modelcardpath,self.modelcardpathfinal)
+    i=0
+    for paramtofit in self.paramtofit:
+      #exec 'parameterinitial.append(device.'+paramtofit+')'
+      modelcardupdate(self.modelcardpathfinal,paramtofit,parametersfit[0][i])
+      i+=1
+
+  ############################################################################ 
+  def runsim(self,modelcardpath):
+    print "simulation of model"
+    #check if simulation path exist, if not, it create the folder
+    if not os.path.exists(self.fitfolder):
+      os.makedirs(self.fitfolder)
+   
+    #import class with path to model & create device for simulation
+    CURRENT_DIR = os.path.dirname(os.path.abspath(self.modelpath))
+    sys.path.insert(0, CURRENT_DIR)
+    deviceaux = imp.load_source('model', self.modelpath)
+    device =  deviceaux.compactmodel('X1')
+
+    #update paramter from modelcard
+    modelcard = open(modelcardpath, 'r') 
     for line in modelcard:
       if (line.find('+')>-1):
         line = line.replace('+', '')
@@ -196,16 +242,57 @@ class fitmodelclass:
         exec stringtoexec     
     modelcard.close()
     
-    device.returnvar = self.vartofitmodel 
+    device.returnvar = self.vartosave
+    #print device.returnvar
     
-    filealldata.close()
+    #################################simulation, device evaluation
+    fileresult = open(self.fitfolder+self.fitresultfilename, 'w') 
+    #analysis set up
+    stringanalysis = ''
+    for Vbias in self.nodes:
+      stringanalysis = stringanalysis + Vbias + ' '
+    for parameteraux in self.deviceparameter:
+      stringanalysis = stringanalysis + parameteraux + ' '
+    for vartoprint in self.vartosave:
+      stringanalysis = stringanalysis + vartoprint + ' '      
+    fileresult.write(stringanalysis+' \n')  
+    #print stringanalysis
     
-    functofit = fungen1(self,device)
-    outaux = functofit(biasandparam,device.tins)
-    print outaux
-    sigma = [1]
-    x0 = device.tins
-    print x0
-    print optimization.curve_fit(functofit, biasandparam, ydata, x0, sigma)
-
+    #generate combination of all bias and parameter values
+    count=0
+    stringallarraybias =''
+    for arraybias in self.dcbiases:
+      stringarraybias = 'ar'+str(count) + ' = np.asarray(arraybias)'
+      stringallarraybias = stringallarraybias + ' ar'+str(count)+',' 
+      exec stringarraybias
+      count+=1
+    for arraydeviceparameter in self.deviceparametervalue:
+      stringarraybias = 'ar'+str(count) + ' = np.asarray(arraydeviceparameter)'
+      stringallarraybias = stringallarraybias + ' ar'+str(count)+',' 
+      exec stringarraybias
+      count+=1          
+    stringtoeval = 'allvaldc = supportfunctions.meshgrid2('+stringallarraybias[:-1]+')'
+    exec stringtoeval
+    
+    #this save to text file by evaluating model
+    i=0
+    column=len(allvaldc)
+    rown=len(allvaldc[0])
+    while (i<rown):
+      stringtowrite = ''
+      j=0
+      bias = []
+      while (j<column):
+        stringtowrite = stringtowrite+str(allvaldc[j][i])+' '
+        if (j<len(self.nodes)):
+          bias.append(allvaldc[j][i])
+        else:
+          stringtoexec = 'device.'+self.deviceparameter[j-len(self.nodes)]+ '='+str(allvaldc[j][i])
+          exec stringtoexec
+        j+=1  
+      valuesvar,namesvar = device.analog(*tuple(bias))#model evaluation
+      resultsimstring = ' '.join(map(str, valuesvar)) 
+      fileresult.write(stringtowrite+resultsimstring+'\n') 
+      i+=1 
+    fileresult.close()
 
