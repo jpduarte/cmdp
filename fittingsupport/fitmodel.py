@@ -22,14 +22,6 @@ param to fit
 update
 '''
 
-def modelcardupdate(filename, parameter, value):  
-  print "updating modelcard with paramter " + parameter + ' = ' +str(value)    
-  for line in fileinput.input(filename, inplace=True):
-    if parameter in line:
-      print '+'+parameter+' = ' + str(value)+'\n'
-    else:
-      print line
-
 def isfloat(value):
   try:
     float(value)
@@ -48,7 +40,7 @@ class fitmodelclass:
     self.modelcardpathfinal = ''
     self.fitfolder = ''#sim1.updateparameter('simulationfolder',rootfolder+'/cmdp/user1/project1/hspicesimulations/idvg/')#add path to folder which will contain simulation files
     self.fitfilename = 'anyname'#sim1.updateparameter('simfilename','hspicesimaux')#define simulation file name
-    self.fitresultfilename = 'outname.txt'#sim1.updateparameter('simresultfilename','hspicesimauxresult.txt')#define simulation final results file 
+    self.simulationresultsfilename = 'outname.txt'#sim1.updateparameter('simresultfilename','hspicesimauxresult.txt')#define simulation final results file 
     self.nodes = ['Vd', 'Vg', 'Vs', 'Vb'] #sim1.updateparameter('nodes',['Vd', 'Vg', 'Vs', 'Vb'])#include node names
     self.deviceparameter = ['L']#sim1.updateparameter('deviceparameter',['L'])#device parameters defined to sweep in simulation     
     self.biasrange = [[0,1],[0,1],[0,1],[0,1]]#indicate range where fit has to be done
@@ -58,7 +50,7 @@ class fitmodelclass:
     self.vartosave = ['Ids']
     self.alldatafile = 'alldata.txt'
     self.paramtoinclude = ['Ids','Vd']#this is to include parameters in final data file which contains all the data
-    self.paramtofit = ['tins']
+    self.paramtofit = ['tins']#parameters that are being fit
   ############################################################################
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
@@ -107,7 +99,8 @@ class fitmodelclass:
       filealldata.write(stringtoprint+'\n')
  
     filealldata.close()   
-    
+  ############################################################################     
+  ############################################################################     
   ############################################################################      
   def fitparameters(self):
     print "Starting fit preparation"
@@ -205,14 +198,25 @@ class fitmodelclass:
     print "model fitting using optimization.curve_fit"
     parametersfit = optimization.curve_fit(functofit, biasandparam, ydata, parameterinitial)
 
-    #update model card
-    shutil.copyfile(self.modelcardpath,self.modelcardpathfinal)
-    i=0
-    for paramtofit in self.paramtofit:
-      #exec 'parameterinitial.append(device.'+paramtofit+')'
-      modelcardupdate(self.modelcardpathfinal,paramtofit,parametersfit[0][i])
-      i+=1
-
+    #update model card  
+    modelcardfinal = open(self.modelcardpathfinal, 'w') 
+    modelcard = open(self.modelcardpath, 'r') 
+    for line in modelcard:
+      flag=0
+      if (line.find('+')>-1):
+        i=0
+        for paramtofit in self.paramtofit:
+          if paramtofit in line:
+            flag=1
+            print "updating modelcard with paramter " + paramtofit + ' = ' +str(parametersfit[0][i])
+            modelcardfinal.write('+'+paramtofit+' = ' + str(parametersfit[0][i])+'\n')
+          i+=1      
+      if flag==0:
+        modelcardfinal.write(line)
+    modelcard.close()
+    modelcardfinal.close()
+  ############################################################################       
+  ############################################################################ 
   ############################################################################ 
   def runsim(self,modelcardpath):
     print "simulation of model"
@@ -246,7 +250,7 @@ class fitmodelclass:
     #print device.returnvar
     
     #################################simulation, device evaluation
-    fileresult = open(self.fitfolder+self.fitresultfilename, 'w') 
+    fileresult = open(self.fitfolder+self.simulationresultsfilename, 'w') 
     #analysis set up
     stringanalysis = ''
     for Vbias in self.nodes:

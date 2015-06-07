@@ -7,7 +7,7 @@ import UFCMdraincurrentmodel
 import mobilitymodels
 import UFCMidsf1update
 
-from numpy import sqrt, exp
+from numpy import sqrt, exp, log, cosh, pi, tan, sin
 
 class compactmodel:
   def __init__(self,name):
@@ -52,7 +52,10 @@ class compactmodel:
     self.GEOMOD           = 0
     self.IDSMOD           = 0
     self.DEVTYPE          = 0
-    
+    self.RDSMOD           = 0
+    self.VTHROMOD         = 0
+    self.VTHDIBLMOD       = 0
+    self.SSMOD           = 0
     #mobility flags, 0 do not use that model, 1 for use the model
     self.MODmudop         = 1
     self.MODmuac          = 1
@@ -65,6 +68,13 @@ class compactmodel:
     self.vthdibl    = 0.0
     self.SSrolloff  = 0.0
     self.SSdibl     = 0.0
+    
+    self.VTHROFIT = 1
+    self.VTHDIBLFIT = 1
+    self.lambdafitRO = 1
+    self.lambdafitDIBL = 1
+    self.lamdafitSS = 1
+    self.fitSSall = 1
     
     #mobility parameters for pmos silicon devices
     #current saturation
@@ -186,15 +196,48 @@ class compactmodel:
       Vs = Vd
       Vd = flagdevtype*(Vsi-Vbi)
       flagsweep = 1.0
-      Rdaux = self.Rs
-      Rsaux = self.Rd
+      if self.RDSMOD==0:
+        Rdaux = self.Rs
+        Rsaux = self.Rs      
+      else:
+        Rdaux = self.Rs
+        Rsaux = self.Rd
     else:
-      Rdaux = self.Rd
-      Rsaux = self.Rs    
+      if self.RDSMOD==0:
+        Rdaux = self.Rs
+        Rsaux = self.Rs      
+      else:  
+        Rdaux = self.Rd
+        Rsaux = self.Rs    
    
     #short channel effect calculations: threshold voltage shift and subthreshold swing degradation
-    deltaVth = flagdevtype*(self.vthrolloff+self.vthdibl* (Vd-Vs))
-    nVtm = self.vt*(1.0+self.SSrolloff+self.SSdibl* (Vd-Vs))
+    vfb_n = (PHIG - self.phi_substrate -self.Eg/2.0-self.vt*log(self.Nch/self.ni))/self.vt
+    vth_fixed_factor_SI = vfb_n+log(self.Cins*self.vt/(self.q*self.ni**2.0*2.0*self.Ach/self.Nch)) 
+    Vth =  vth_fixed_factor_SI*self.vt
+    rc  = (2.0*self.Cins/(self.Weff**2.0*self.ech/self.Ach))
+    self.lamda = sqrt(self.ech*self.Ach/self.Cins*(1+rc/2.0))
+    
+    deltaVth = 0
+    #Vth roll-off
+    if ( self.VTHROMOD == 0):
+      vbi = self.vt*log(1e26*self.Nch/self.ni**2)
+      vsl = Vth - vfb_n*self.vt-(self.q*self.Nch/self.ech)*self.lamda**2
+      deltaVth = deltaVth + flagdevtype*(2*(vbi-vsl)*self.VTHROFIT/(2*cosh(self.Lg/( self.lambdafitRO*2*self.lamda))-2) )
+    else:
+      deltaVth = deltaVth + flagdevtype*(self.vthrolloff)
+
+    #Vth DIBL effec
+    if ( self.VTHDIBLMOD == 0):
+      deltaVth = deltaVth + flagdevtype*(-(Vd-Vs)*self.VTHDIBLFIT/(2*cosh(self.Lg/(self.lambdafitDIBL*2*self.lamda))-2) )
+    else:
+      deltaVth = deltaVth + flagdevtype*(self.vthdibl* (Vd-Vs))
+    if (self.SSMOD==0):
+      tch = 2*self.Ach/self.Weff
+      B = (2*self.lamda**2*tan(pi*self.tins/self.lamda)*sin(0.5*pi*tch/self.lamda))/(pi**2*self.tins*(tch/2.0+self.tins*sin(pi*tch/self.lamda)/sin(2*pi*self.tins/self.lamda)))
+      nn = (1-self.fitSSall*2*B*(1+(1.0/8.0)*((Vd-Vs)/(self.Eg/2.0+(Vd-Vs)/2.0-10*self.vt))**2.0)*exp(-pi*self.Lg/(2.0*self.lamda*self.lamdafitSS)))**(-1)
+      nVtm = self.vt*(nn)
+    else:      
+      nVtm = self.vt*(1.0+self.SSrolloff+self.SSdibl* (Vd-Vs))
  
     #quantum mechanical effects - bias dependence parameter calculations
     mx =  0.916 * self.MEL
@@ -238,7 +281,7 @@ class compactmodel:
     
     #total current counting number of fins NFIN  
     Ids = flagdevtype*idsfinal*self.NFIN
-    
+    Idnorm = Ids/self.Weff*1e-6
     #gate charge, TODO: add source/drain terminal charges 
     Qg = -((qs+qd)*0.5-(qs-qd)**2/(6*(-2*(qs+qd)+1)))*self.Cins*nVtm*self.Lg*self.NFIN*flagdevtype
     
