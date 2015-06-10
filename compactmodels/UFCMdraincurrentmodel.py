@@ -15,7 +15,7 @@ import mobilitymodels
 import UFCMvdsat
 import UFCMchargemodel
 
-def unified_normilized_ids(self,qms,vt,phi_gate,Vd,Vs,Vg,QMFACTORCVfinal,deltaVth) :
+def unified_normilized_ids(self,qms,vt,phi_gate,Vd,Vs,Vg,QMFACTORCVfinal,deltaVth,SS) :
   
   #parameter definitions
   q = self.q
@@ -42,7 +42,7 @@ def unified_normilized_ids(self,qms,vt,phi_gate,Vd,Vs,Vg,QMFACTORCVfinal,deltaVt
   if (IDSMOD==0):
     #normalized drain current model ref: Unified FinFET Compact Model: Modelling Trapezoidal Triple-Gate FinFETs 
     Vch = Vd
-    qmd = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,vt,phi_gate,QMFACTORCVfinal)
+    qmd = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,vt,phi_gate,QMFACTORCVfinal,SS)
   
     rc  = (2*Cins/(Weff**2*ech/Ach))#TODO: check factor of 2 in rc?
     qdep  = (-q*Nch*Ach)/(vt*Cins)
@@ -89,7 +89,7 @@ def unified_normilized_ids(self,qms,vt,phi_gate,Vd,Vs,Vg,QMFACTORCVfinal,deltaVt
     qdsat = (2.0*Lg*vsat + mulow1*qms*vt*x1 + mulow1*vt + mulow2*qms*vt*x2 + mulow2*vt - sqrt(4.0*Lg**2*vsat**2 + 4.0*Lg*mulow1*qms*vsat*vt*x1 + 4.0*Lg*mulow1*vsat*vt + 4.0*Lg*mulow2*qms*vsat*vt*x2 + 4.0*Lg*mulow2*vsat*vt + mulow1**2*qms**2*vt**2 - 2.0*mulow1**2*qms*vt**2 + mulow1**2*vt**2 + 2.0*mulow1*mulow2*qms**2*vt**2 - 4.0*mulow1*mulow2*qms*vt**2 + 2.0*mulow1*mulow2*vt**2 + mulow2**2*qms**2*vt**2 - 2.0*mulow2**2*qms*vt**2 + mulow2**2*vt**2))/(mulow1*vt*x1 + mulow1*vt + mulow2*vt*x2 + mulow2*vt)
     
     #Vdsat calculation 
-    Vdsat = UFCMvdsat.vdsat(self,Vg-deltaVth,qdsat,vt,phi_gate,QMFACTORCVfinal)-Vs 
+    Vdsat = UFCMvdsat.vdsat(self,Vg-deltaVth,qdsat,vt,phi_gate,QMFACTORCVfinal,SS)-Vs 
 
     #Vdseff calculation
     Vds = Vd-Vs
@@ -100,7 +100,7 @@ def unified_normilized_ids(self,qms,vt,phi_gate,Vd,Vs,Vg,QMFACTORCVfinal,deltaVt
     
     #calculation of mobile charge at drain-side, using Vdseff
     #Note that Vs is added to account for right voltage reference  
-    qmd = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vdseff+Vs,vt,phi_gate,QMFACTORCVfinal)
+    qmd = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vdseff+Vs,vt,phi_gate,QMFACTORCVfinal,SS)
     
     #current calculation using Gauss Quadrature technique
     q1 = (qmd-qms)*(x1+1)/2.0 + qms

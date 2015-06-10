@@ -48,7 +48,7 @@ class pycsimpython:
     #update paramter from modelcard
     modelcard = open(self.modelcardpath, 'r') 
     for line in modelcard:
-      if (line.find('+')>-1):
+      if (line[0]=='+'):
         line = line.replace('+', '')
         line = line.replace('=', ' ')
         #TODO replace all n,u,p,f, etc

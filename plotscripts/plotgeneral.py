@@ -99,6 +99,7 @@ class plotgeneral:
     self.markerfacecolor = (1, 1, 1, 1)
     self.lw=1
     self.ylogflag = 0
+    self.xlogflag = 0
     self.derivativeorder = 0
     self.markersize= 10
   def updateparameter(self,name,value):
@@ -157,6 +158,9 @@ class plotgeneral:
       if self.ylogflag==1:
         ax = plt.gca()
         ax.set_yscale('log')
+      if self.xlogflag==1:
+        ax = plt.gca()
+        ax.set_xscale('log')        
     
     #x and y axis label          
     target.close()

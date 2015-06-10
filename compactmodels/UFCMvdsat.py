@@ -4,7 +4,7 @@
 
 from numpy import exp,log,sqrt
 
-def vdsat(self,Vg,qm,vt,phi_gate,QMF) :
+def vdsat(self,Vg,qm,vt,phi_gate,QMF,nss) :
 
   q = self.q
   k = self.k
@@ -34,5 +34,5 @@ def vdsat(self,Vg,qm,vt,phi_gate,QMF) :
   qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
   x0      = qtrc/(exp(qtrc)-qtrc-1.0)
   x1      = qtrc*x0  
-  Vch  =Vg-vt*(vth_N_SI-qm+log(-qm)+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0)))
+  Vch  =Vg-vt*(vth_N_SI-qm+nss*log(-qm)+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0)))
   return Vch  

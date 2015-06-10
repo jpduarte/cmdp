@@ -231,13 +231,22 @@ class compactmodel:
       deltaVth = deltaVth + flagdevtype*(-(Vd-Vs)*self.VTHDIBLFIT/(2*cosh(self.Lg/(self.lambdafitDIBL*2*self.lamda))-2) )
     else:
       deltaVth = deltaVth + flagdevtype*(self.vthdibl* (Vd-Vs))
+      
+    #SS calculation  
     if (self.SSMOD==0):
-      tch = 2*self.Ach/self.Weff
-      B = (2*self.lamda**2*tan(pi*self.tins/self.lamda)*sin(0.5*pi*tch/self.lamda))/(pi**2*self.tins*(tch/2.0+self.tins*sin(pi*tch/self.lamda)/sin(2*pi*self.tins/self.lamda)))
-      nn = (1-self.fitSSall*2*B*(1+(1.0/8.0)*((Vd-Vs)/(self.Eg/2.0+(Vd-Vs)/2.0-10*self.vt))**2.0)*exp(-pi*self.Lg/(2.0*self.lamda*self.lamdafitSS)))**(-1)
-      nVtm = self.vt*(nn)
-    else:      
-      nVtm = self.vt*(1.0+self.SSrolloff+self.SSdibl* (Vd-Vs))
+      vbi = self.vt*log(1e26*self.Nch/self.ni**2) #TODO: input Nd source/drain  
+      Ld =   self.lamdafitSS*self.lamda*sqrt(8.0)
+      #Ld = 2.0*self.Ach/(self.Weff)+2*(self.ech)*self.Cins/(self.Weff)
+      #Ld = 2.0*self.Ach/self.Weff+2.0*4.0*self.tins
+      yc = self.Lg/2.0+(Ld/(2*pi))*log(vbi/(vbi+(Vd-Vs)))
+      SS = (1.0/0.9)/((4.0/(pi))*sin(pi*yc/self.Lg)/cosh(0.5*pi*Ld/self.Lg)+(4.0/(3.0*pi))*sin(3.0*pi*yc/self.Lg)/cosh(3.0*0.5*pi*Ld/self.Lg)+(4.0/(5.0*pi))*sin(5.0*pi*yc/self.Lg)/cosh(5.0*0.5*pi*Ld/self.Lg))
+      #+(4.0/(7.0*pi))*sin(7.0*pi*yc/self.Lg)/cosh(7.0*0.5*pi*Ld/self.Lg)+(4.0/(9.0*pi))*sin(9.0*pi*yc/self.Lg)/cosh(9.0*0.5*pi*Ld/self.Lg)+(4.0/(11.0*pi))*sin(11.0*pi*yc/self.Lg)/cosh(11.0*0.5*pi*Ld/self.Lg)+(4.0/(13.0*pi))*sin(13.0*pi*yc/self.Lg)/cosh(13.0*0.5*pi*Ld/self.Lg)
+      nVtm = self.vt#*(SS)
+      SS = SS     
+    else:  
+      SS = 1.0+self.SSrolloff+self.SSdibl* (Vd-Vs)    
+      nVtm = self.vt#*(SS)
+      SS = SS
  
     #quantum mechanical effects - bias dependence parameter calculations
     mx =  0.916 * self.MEL
@@ -247,10 +256,10 @@ class compactmodel:
        
     #source side evaluation for charge  
     Vch = Vs
-    qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf)
+    qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
    
     #drain-source current model (normalized)
-    ids0,mu,vdsat,qd = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth)
+    ids0,mu,vdsat,qd = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth,SS)
 
     #drain-source current in Ampere [C/s]
     idsfactor = (nVtm**2*self.Cins)/self.Lg
@@ -266,8 +275,8 @@ class compactmodel:
     count=0
     while (count<self.countRmodel):  
       Vch = Vs+Rsaux*idsfinal
-      qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf)
-      ids0,mu,vdsat,qd = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd-Rdaux*idsfinal,Vs+Rsaux*idsfinal,Vg,QMf,deltaVth)
+      qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
+      ids0,mu,vdsat,qd = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd-Rdaux*idsfinal,Vs+Rsaux*idsfinal,Vg,QMf,deltaVth,SS)
       
       #Newton iteration update    
       f0 = idsfinal-ids0*idsfactor
@@ -290,6 +299,5 @@ class compactmodel:
     for var in self.returnvar:
       exec 'variablesvalues.append('+var+')'
     #print variablesvalues
-     
     return  variablesvalues,self.returnvar
 

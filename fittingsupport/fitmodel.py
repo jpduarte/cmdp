@@ -203,7 +203,7 @@ class fitmodelclass:
     modelcard = open(self.modelcardpath, 'r') 
     for line in modelcard:
       flag=0
-      if (line.find('+')>-1):
+      if (line[0]=='+'):
         i=0
         for paramtofit in self.paramtofit:
           if paramtofit in line:
@@ -233,7 +233,7 @@ class fitmodelclass:
     #update paramter from modelcard
     modelcard = open(modelcardpath, 'r') 
     for line in modelcard:
-      if (line.find('+')>-1):
+      if (line[0]=='+'):
         line = line.replace('+', '')
         line = line.replace('=', ' ')
         #TODO replace all n,u,p,f, etc
