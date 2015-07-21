@@ -95,13 +95,14 @@ class plotgeneral:
     
     #defaul parameters
     self.symbol  = 'o'
-    self.color = 'k'
+    self.color = ''
     self.markerfacecolor = (1, 1, 1, 1)
     self.lw=1
     self.ylogflag = 0
     self.xlogflag = 0
     self.derivativeorder = 0
     self.markersize= 10
+    self.filetype = ''
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     if type(value) == type(''):
@@ -113,16 +114,19 @@ class plotgeneral:
     
   def plotfiledata(self,pathandfile,xstring,ystring,fignumber):
     #this function open a file pathandfile and plot the columns with xstring and ystring string header
-    target = open( pathandfile, 'r')
-    header = str.split(target.readline())
-    if len(header)>0:
-      xindex =  header.index(xstring)
-      yindex =  header.index(ystring)
-    
-      datalist = loadtxt(pathandfile,skiprows = 1)
+    flagprint = 0
+    if self.filetype=='':
+      target = open( pathandfile, 'r')
+      header = str.split(target.readline())
+      if len(header)>0:
+        flagprint = 1
+        xindex =  header.index(xstring)
+        yindex =  header.index(ystring)
+      
+        datalist = loadtxt(pathandfile,skiprows = 1)
 
-      xarray = datalist[:,xindex]
-      yarray = datalist[:,yindex]
+        xarray = datalist[:,xindex]
+        yarray = datalist[:,yindex]
       
       #this is to identify index how to re-shape matrix for right plotting
       numberelement = 0
@@ -138,7 +142,34 @@ class plotgeneral:
       
       #reshape matrix to plot lines
       xarray = rearrangearray(xarray,elementpercylce,numberelement)
-      yarray = rearrangearray(yarray,elementpercylce,numberelement)
+      yarray = rearrangearray(yarray,elementpercylce,numberelement)        
+      target.close()
+      
+    #SAS format, for intership  
+    if self.filetype=='SAS':
+      flagprint = 1
+      target = open(pathandfile, 'r')
+
+      #datalist = loadtxt(pathdatafile,skiprows = 1)
+      header = str.split(target.readline(),',')
+      #print header
+      xindex =  header.index(xstring)
+      yindex =  header.index(ystring)
+      #print xindex,yindex
+      xarray = []
+      yarray = []
+
+      for line in target:
+        #print line
+        linesplit = str.split(line,',')
+        #print linesplit
+        if (linesplit[xindex+1]!='noData') and (linesplit[yindex+1]!='noData'):
+          xarray.append(float(linesplit[xindex+1]))
+          yarray.append(float(linesplit[yindex+1]))     
+      target.close()
+      
+    if flagprint==1:  
+
       #plot
       plt.figure(fignumber)
 
@@ -148,11 +179,17 @@ class plotgeneral:
         yarray = abs(yarray) 
               
       #plot variable or its derivatives: TODO: it plot derivate with respect to x-axis, update derivative with respect to any variable
-      if (self.derivativeorder<1):      
-        plt.plot( xarray, yarray, self.symbol, lw=self.lw,markersize=self.markersize)#, color=''  )
+      if (self.derivativeorder<1):  
+        if self.color=='':    
+          plt.plot( xarray, yarray, self.symbol, lw=self.lw,markersize=self.markersize  )
+        else:
+          plt.plot( xarray, yarray, self.symbol, lw=self.lw,markersize=self.markersize, color=self.color  )
       else :
         K = K_generator(xarray[:,0],self.derivativeorder) 
-        plt.plot( xarray, K*yarray, self.symbol, lw=self.lw,markersize=self.markersize)#, color=self.color  )
+        if self.color=='':    
+          plt.plot( xarray, K*yarray, self.symbol, lw=self.lw,markersize=self.markersize)
+        else:
+          plt.plot( xarray, K*yarray, self.symbol, lw=self.lw,markersize=self.markersize, color=self.color  )
       
       #log scale check  
       if self.ylogflag==1:
@@ -163,12 +200,12 @@ class plotgeneral:
         ax.set_xscale('log')        
     
     #x and y axis label          
-    target.close()
-    ax = plt.gca()
-    ax.set_xlabel(xstring)
-    if (self.derivativeorder<1):
-      ax.set_ylabel(ystring)  
-    else:
-      ax.set_ylabel('d^'+str(self.derivativeorder)+' '+ystring+'/d'+xstring+'^'+str(self.derivativeorder))
+    
+      ax = plt.gca()
+      ax.set_xlabel(xstring)
+      if (self.derivativeorder<1):
+        ax.set_ylabel(ystring)  
+      else:
+        ax.set_ylabel('d^'+str(self.derivativeorder)+' '+ystring+'/d'+xstring+'^'+str(self.derivativeorder))
 
 

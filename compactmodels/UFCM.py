@@ -76,6 +76,7 @@ class compactmodel:
     self.lamdafitSS = 1
     self.fitSSall = 1
     
+    self.nssshift=100.0
     #mobility parameters for pmos silicon devices
     #current saturation
     self.betavsat = 2.0 
@@ -213,8 +214,8 @@ class compactmodel:
     #short channel effect calculations: threshold voltage shift and subthreshold swing degradation
     vfb_n = (PHIG - self.phi_substrate -self.Eg/2.0-self.vt*log(self.Nch/self.ni))/self.vt
     vth_fixed_factor_SI = vfb_n+log(self.Cins*self.vt/(self.q*self.ni**2.0*2.0*self.Ach/self.Nch)) 
-    Vth =  vth_fixed_factor_SI*self.vt
-    rc  = (2.0*self.Cins/(self.Weff**2.0*self.ech/self.Ach))
+    rc  = (2.0*self.Cins/(self.Weff**2.0*self.ech/self.Ach))    
+    Vth =  vth_fixed_factor_SI*self.vt+log((qdep*rc)**2.0/(exp(qdep*rc)-qdep*rc-1.0))*self.vt
     self.lamda = sqrt(self.ech*self.Ach/self.Cins*(1+rc/2.0))
     
     deltaVth = 0
@@ -228,7 +229,7 @@ class compactmodel:
 
     #Vth DIBL effec
     if ( self.VTHDIBLMOD == 0):
-      deltaVth = deltaVth + flagdevtype*(-(Vd-Vs)*self.VTHDIBLFIT/(2*cosh(self.Lg/(self.lambdafitDIBL*2*self.lamda))-2) )
+      deltaVth = deltaVth + (-(Vd-Vs)*self.VTHDIBLFIT/(2*cosh(self.Lg/(self.lambdafitDIBL*2*self.lamda))-2) )
     else:
       deltaVth = deltaVth + flagdevtype*(self.vthdibl* (Vd-Vs))
       
@@ -259,7 +260,7 @@ class compactmodel:
     qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
    
     #drain-source current model (normalized)
-    ids0,mu,vdsat,qd = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth,SS)
+    ids0,mu,vdsat,qd,qdsat,vedrainsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth,SS,flagsweep)
 
     #drain-source current in Ampere [C/s]
     idsfactor = (nVtm**2*self.Cins)/self.Lg
@@ -276,7 +277,7 @@ class compactmodel:
     while (count<self.countRmodel):  
       Vch = Vs+Rsaux*idsfinal
       qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
-      ids0,mu,vdsat,qd = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd-Rdaux*idsfinal,Vs+Rsaux*idsfinal,Vg,QMf,deltaVth,SS)
+      ids0,mu,vdsat,qd,qdsat,vedrainsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd-Rdaux*idsfinal,Vs+Rsaux*idsfinal,Vg,QMf,deltaVth,SS,flagsweep)
       
       #Newton iteration update    
       f0 = idsfinal-ids0*idsfactor
@@ -286,9 +287,14 @@ class compactmodel:
     
     #source-drain sweep in case Vd<Vs
     if flagsweep ==1:
+      qaux = qs
+      qs = qd
+      qd = qs
       idsfinal=-idsfinal
     
     #total current counting number of fins NFIN  
+    vedrain = -idsfinal/(qd*self.vt*self.Cins)
+    vesource = -idsfinal/(qs*self.vt*self.Cins)
     Ids = flagdevtype*idsfinal*self.NFIN
     Idnorm = Ids/self.Weff*1e-6
     #gate charge, TODO: add source/drain terminal charges 

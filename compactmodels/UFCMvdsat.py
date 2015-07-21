@@ -34,5 +34,12 @@ def vdsat(self,Vg,qm,vt,phi_gate,QMF,nss) :
   qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
   x0      = qtrc/(exp(qtrc)-qtrc-1.0)
   x1      = qtrc*x0  
-  Vch  =Vg-vt*(vth_N_SI-qm+nss*log(-qm)+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0)))
+  Vch  =Vg+log(self.nssshift)*(nss-1.0)*vt-vt*(vth_N_SI-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0)))
   return Vch  
+  
+  
+
+    
+    
+    
+    

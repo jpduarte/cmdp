@@ -24,6 +24,8 @@ def unified_charge_model(self,Vg,Vch,vt,phi_gate,QMF,nss) :
   Weff = self.Weff
   Nch = self.Nch
 
+
+  Vg = Vg+log(self.nssshift)*(nss-1.0)*vt
   rc  = (2.0*Cins/(Weff**2.0*ech/Ach))
   qdep  = (-q*Nch*Ach)/((vt/nss)*Cins)
   vfb_n = (phi_gate - phi_substrate -Eg/2.0-vt*log(Nch/ni))/vt
@@ -53,7 +55,7 @@ def unified_charge_model(self,Vg,Vch,vt,phi_gate,QMF,nss) :
     f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))
     f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))
     f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))
-    qm      = qm-(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))    
+    qm      = qm-(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))       
   else:
     qm      = exp((Vg_local_N-vth_N_Sub)*0.5/nss)
     if(qm>1.0e-7):#original 1.0e-7
@@ -75,7 +77,7 @@ def unified_charge_model(self,Vg,Vch,vt,phi_gate,QMF,nss) :
       f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))
       f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))
       f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))
-      qm      = qm-(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))    
+      qm      = qm-(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))       
     else:
       qm      = -qm**2.0
   return qm  

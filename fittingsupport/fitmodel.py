@@ -51,6 +51,7 @@ class fitmodelclass:
     self.alldatafile = 'alldata.txt'
     self.paramtoinclude = ['Ids','Vd']#this is to include parameters in final data file which contains all the data
     self.paramtofit = ['tins']#parameters that are being fit
+    self.inputfileformat = ''
   ############################################################################
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
@@ -80,25 +81,58 @@ class fitmodelclass:
       filealldata.write(stringanalysis+' \n')        
     
     target = open( datapathandfile, 'r')
-    header = str.split(target.readline())
-    
-    #check the order of how parameters must be printed in final file  
-    indexinparam = []
-    for paramtoinclude in header:
-      indexinparam.append( self.paramtoinclude.index(paramtoinclude))     
-    for paramtoinclude in extraparmnames:
-      indexinparam.append( self.paramtoinclude.index(paramtoinclude))       
-    
-    for line in target:
-      listvalues = str.split(line)
-      listvalues = listvalues+extraparmvalues     
-      valuessorted = [x for y, x in sorted(zip(indexinparam,listvalues))]
-      stringtoprint = ''
-      for valueprint in valuessorted:
-        stringtoprint+=valueprint + ' '
-      filealldata.write(stringtoprint+'\n')
+    if (self.inputfileformat == ''):
+      header = str.split(target.readline())
+      
+      #check the order of how parameters must be printed in final file  
+      indexinparam = []
+      for paramtoinclude in header:
+        indexinparam.append( self.paramtoinclude.index(paramtoinclude))     
+      for paramtoinclude in extraparmnames:
+        indexinparam.append( self.paramtoinclude.index(paramtoinclude))       
+      
+      for line in target:
+        listvalues = str.split(line)
+        listvalues = listvalues+extraparmvalues     
+        valuessorted = [x for y, x in sorted(zip(indexinparam,listvalues))]
+        stringtoprint = ''
+        for valueprint in valuessorted:
+          stringtoprint+=valueprint + ' '
+        filealldata.write(stringtoprint+'\n')
  
-    filealldata.close()   
+    if (self.inputfileformat == 'asifdata'):
+      enterdata = 0
+      
+      for line in target:
+        if 'DataName' in line:
+          header = [x.strip() for x in line.split(',')]
+          header = header[1:]
+          
+          #check the order of how parameters must be printed in final file  
+          indexinparam = []
+          for paramtoinclude in header:
+            indexinparam.append( self.paramtoinclude.index(paramtoinclude))   
+
+          for paramtoinclude in extraparmnames:
+            indexinparam.append( self.paramtoinclude.index(paramtoinclude))           
+          break
+
+      for line in target:
+        listvalues = [x.strip() for x in line.split(',')] 
+        listvalues = listvalues[1:-1]
+        listvalues = listvalues+extraparmvalues     
+        valuessorted = [x for y, x in sorted(zip(indexinparam,listvalues))]
+        stringtoprint = ''
+        for valueprint in valuessorted:
+          stringtoprint+=valueprint + ' '
+        filealldata.write(stringtoprint+'\n') 
+ 
+    filealldata.close() 
+  def addalldatainfolder(self,folder,name_parameters_missing, value_parameters_missing):
+    data_files = [(x[0], x[2]) for x in os.walk(folder)]
+    for datafile in data_files[0][1]:
+      print "\n Adding: "+datafile
+      self.adddata(folder+datafile, name_parameters_missing, value_parameters_missing) 
   ############################################################################     
   ############################################################################     
   ############################################################################      
@@ -172,17 +206,18 @@ class fitmodelclass:
     #TODO: make this a function outside, because many parts use this modelcard to parameter setting
     modelcard = open(self.modelcardpath, 'r') 
     for line in modelcard:
-      if (line.find('+')>-1):
-        line = line.replace('+', '')
-        line = line.replace('=', ' ')
-        #TODO replace all n,u,p,f, units by number so users can write it in that way as well
-        stringinline = str.split(line)
-        valueparam = stringinline[-1]
-        if (isfloat(valueparam)):
-          stringtoexec = 'device.'+stringinline[0]+ '='+valueparam
-        else:
-          stringtoexec = 'device.'+stringinline[0] +'='+'device.'+valueparam        
-        exec stringtoexec     
+      if (line.find('*')!=0):
+        if (line.find('+')>-1):
+          line = line.replace('+', '')
+          line = line.replace('=', ' ')
+          #TODO replace all n,u,p,f, units by number so users can write it in that way as well
+          stringinline = str.split(line)
+          valueparam = stringinline[-1]
+          if (isfloat(valueparam)):
+            stringtoexec = 'device.'+stringinline[0]+ '='+valueparam
+          else:
+            stringtoexec = 'device.'+stringinline[0] +'='+'device.'+valueparam        
+          exec stringtoexec     
     modelcard.close()
     device.returnvar = self.vartofitmodel 
     
