@@ -7,6 +7,13 @@ import supportfunctions
 
 import numpy as np
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 class hspicepython:
   def __init__(self,name):
     self.name = name
@@ -172,4 +179,99 @@ class hspicepython:
               stringtowrite = stringtowrite + result+' '
             resultcount+=1 
           hspicefileresult.write(stringtowrite+'\n') 
-          i+=1        
+          i+=1
+          
+          
+  def hspicetotex(self,stringstart,stringend):
+    outputfiletoread = open(self.simulationfolder+self.simfilename+'.lis', 'r') 
+    state=0
+    #this take data from .lis file and save information in python dictionaries
+    countruns=0
+    totalvariables = []
+    namesaux = ''
+    names_vol_curr = []
+    valuestoprint = {}
+    flagfirstread = 1 #use to save only once variable that is being sweeped for simulation, can be input voltage or time
+    for line in outputfiletoread:
+      #print line
+      if (state==0):
+        if (line.find(stringstart)==0):
+          print "go to state 1"
+          state=1
+      elif (state==1):
+        stringinline = str.split(line)
+        if len(stringinline)>0:
+        
+          if (is_number(stringinline[0])):
+          
+            if flagfirstread==1:
+              namesaux = ['sweepvar']+namesaux
+              print namesaux
+
+            totalvariables= totalvariables + namesaux
+              
+            if (len(vol_curr_string)<(len(namesaux)+1+flagfirstread*-1)):
+              vol_curr_string = vol_curr_string + ['unknown']
+              
+            if flagfirstread==0:
+              vol_curr_string = vol_curr_string[1:]
+            names_vol_curr = names_vol_curr + vol_curr_string
+            state=2
+            print "go to state 2"
+
+            count=0
+            if flagfirstread==1:
+              addint = 0
+            else:
+              addint = 1 
+            #this is to create cell for given printed variables
+            for variable in namesaux:
+              valuestoprint[variable+'('+vol_curr_string[count]+')'] = []
+              count+=1
+              
+            count=0
+            for variable in namesaux:
+              valuestoprint[variable+'('+vol_curr_string[count]+')'].append(stringinline[count+addint])
+              count+=1              
+          else:
+            vol_curr_string = namesaux
+            namesaux = stringinline
+
+      elif (state==2):
+        #print line
+        if (line.find(stringend)==0) :
+          flagfirstread = 0
+          print "go to state 0"
+          state=0
+        else:   
+          stringinline = str.split(line)
+          count=0
+          if flagfirstread==1:
+            addint = 0
+          else:
+            addint = 1        
+          for variable in namesaux:
+            valuestoprint[variable+'('+vol_curr_string[count]+')'].append(stringinline[count+addint])
+            count+=1              
+          
+    #write all data to text file   
+    hspicefileresult = open(self.simulationfolder+self.simresultfilename, 'w')        
+    namesfinal = valuestoprint.keys()
+    stringtowrite = ''    
+    count=0  
+    for variable in namesfinal:
+      stringtowrite = stringtowrite + variable+ ' '
+      count+=1
+      
+    hspicefileresult.write(stringtowrite[:-1]+'\n')
+
+    lenarrayaux = len(valuestoprint[namesfinal[0]])
+    count=0
+    while (count<lenarrayaux):
+      stringtowrite = '' 
+      for namevar in namesfinal:
+        stringtowrite = stringtowrite + valuestoprint[namevar][count] + ' '
+      hspicefileresult.write(stringtowrite[:-1]+'\n')
+      count+=1
+    hspicefileresult.close() 
+                        
