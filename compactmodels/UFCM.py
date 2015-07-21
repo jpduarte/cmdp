@@ -24,9 +24,9 @@ class compactmodel:
     self.eo      = 8.854000e-12 # F / m
     self.eins    = 3.9*self.eo # F / m 
     self.ech     = 11.7*self.eo # F / m 
-    self.Eg 	   = 1.169640 #eV
+    self.Eg      = 1.169640 #eV
     self.Nc      = 2.890000e+25 #1/m^3
-    self.Nv 	   = 3.140000e+25 #1/m^3 
+    self.Nv      = 3.140000e+25 #1/m^3 
     #device dimensions and parameters
     self.HFIN             = 20e-9 #m
     self.TFIN             = 10e-9 #m   
@@ -39,7 +39,7 @@ class compactmodel:
     self.tins             = 1e-9 #m
     self.Nch              = 1.0e21 #1/m^3
     self.phi_substrate    = 4.05 #eV
-    self.PHIG 	          = 4.5 #eV
+    self.PHIG             = 4.5 #eV
     self.alpha_MI         = 4
     self.Lg               = 1e-6
     self.returnvar        = ['Ids']
@@ -215,6 +215,7 @@ class compactmodel:
     vfb_n = (PHIG - self.phi_substrate -self.Eg/2.0-self.vt*log(self.Nch/self.ni))/self.vt
     vth_fixed_factor_SI = vfb_n+log(self.Cins*self.vt/(self.q*self.ni**2.0*2.0*self.Ach/self.Nch)) 
     rc  = (2.0*self.Cins/(self.Weff**2.0*self.ech/self.Ach))    
+    qdep  = (-self.q*self.Nch*self.Ach)/((self.vt)*self.Cins)
     Vth =  vth_fixed_factor_SI*self.vt+log((qdep*rc)**2.0/(exp(qdep*rc)-qdep*rc-1.0))*self.vt
     self.lamda = sqrt(self.ech*self.Ach/self.Cins*(1+rc/2.0))
     
