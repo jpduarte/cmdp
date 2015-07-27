@@ -6,6 +6,7 @@ import UFCMchargemodel
 import UFCMdraincurrentmodel
 import mobilitymodels
 import UFCMidsf1update
+from algopy import UTPM
 
 from numpy import sqrt, exp, log, cosh, pi, tan, sin
 
@@ -146,11 +147,68 @@ class compactmodel:
     self.rcoulomb_dcrit   = 0.0 # cm
     self.rcoulomb_lcrit   = 1e-6 # cm
     self.rcoulomb_lcrithk = 1e-6 # cm
-    self.rcoulomb_xi      = 1.3042e7 # V-1cm-1   
+    self.rcoulomb_xi      = 1.3042e7 # V-1cm-1  
+    
+    self.alpha1_P = -4.8628e+07
+    self.alpha11_P = 3.1166e+08
+    self.alpha111_P = 1.3357e+08
+    self.alpha1111_P = 0
+    self.t_FE = 100e-9
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     exec "self."+name+' = '+'value'   
   def analog(self,*args):
+    Vdi,Vgi,Vsi,Vbi = args
+    
+    #geometrie Unified FinFET model parameter calculations, TODO: add more geometries
+    if (self.GEOMOD==0): #double-gate, rectangular
+      self.Cins   = (2.0*self.HFIN)*self.eins/self.tins
+      self.Ach    = self.TFIN*self.HFIN
+      self.Weff   = 2.0*self.HFIN
+    if (self.GEOMOD==1): #triple-gate, rectangular
+      self.Cins   = (2.0*self.HFIN+self.TFIN)*self.eins/self.tins
+      self.Ach    = self.TFIN*self.HFIN
+      self.Weff   = (2.0*self.HFIN+self.TFIN)    
+    if (self.GEOMOD==2): #triple-gate, trapezoidal
+      self.Weff   = sqrt((self.TFIN_TOP_L-self.TFIN_BASE_L)**2+self.HFIN**2)+sqrt((self.TFIN_TOP_R-self.TFIN_BASE_R)**2+self.HFIN**2)+self.TFIN_TOP_R+self.TFIN_TOP_L
+      self.Cins   = self.Weff*self.eins/self.tins
+      self.Ach    = self.HFIN*(self.TFIN_TOP_R+self.TFIN_TOP_L + self.TFIN_BASE_L+self.TFIN_BASE_R)/2
+    
+    Qg = 0
+    dQg = 0
+    count=0
+    V_FE = 0
+    while count<5:
+      count+=1
+      
+      #save previous values
+      V_FE_old = V_FE
+      Qg_old = Qg;
+      
+      #FE equations
+      Q = Qg/(self.Lg*self.NFIN*self.Weff)
+      E_FE=2.0*self.alpha1_P*Q+4.0*self.alpha11_P*Q**3.0+6.0*self.alpha111_P*Q**5.0+8.0*self.alpha1111_P*Q**7.0;    #Electric field across the ferroelectric
+      V_FE=E_FE*self.t_FE;
+
+      #wrap to include FE voltage drop
+      Vgiaux = Vgi-V_FE
+      Ids,Qg = self.analog2(Vdi,Vgiaux,Vsi,Vbi)#)
+      
+      #derivate constructions
+      Idsv,Qgv = self.analog2(Vdi,UTPM.init_jacobian(Vgiaux),Vsi,Vbi)
+      dQg_dVgp = UTPM.extract_jacobian(Qgv)
+      dE_FE_dQbp = 2.0*self.alpha1_P+3.0*4.0*self.alpha11_P*Q**2.0+5.0*6.0*self.alpha111_P*Q**4.0+7.0*8.0*self.alpha1111_P*Q**6.0; 
+      dVgp_dQbp = - (self.t_FE*dE_FE_dQbp*1/(self.Lg*self.NFIN*self.Weff))
+      
+      #Newton Method
+      f = Qg_old - Qg
+      df = 1-dQg_dVgp[0]*dVgp_dQbp
+      Qg = Qg_old-f/df
+      V_FE_delta = V_FE-V_FE_old
+      
+    return  [Ids,Qg,V_FE,V_FE_delta],self.returnvar
+    
+  def analog2(self,*args):
     """this function returns the drain current or other variables for given bias"""  
     
     ###################################################
@@ -186,125 +244,147 @@ class compactmodel:
     ##########Bias dependent calculations##############
     ###################################################
     Vdi,Vgi,Vsi,Vbi = args
-    
-    Vg = flagdevtype*(Vgi-Vbi)
-    Vs = flagdevtype*(Vsi-Vbi)
-    Vd = flagdevtype*(Vdi-Vbi)
-    Vb = 0.0
-    flagsweep = 0.0  
-    #sweep voltage reference for drain-source
-    if (Vd<Vs):
-      Vs = Vd
-      Vd = flagdevtype*(Vsi-Vbi)
-      flagsweep = 1.0
-      if self.RDSMOD==0:
-        Rdaux = self.Rs
-        Rsaux = self.Rs      
+    Vgi=Vgi
+    count_FE=0
+    if True:#while (count_FE<100):
+      count_FE+=1
+      Vg = flagdevtype*(Vgi-Vbi)
+      Vs = flagdevtype*(Vsi-Vbi)
+      Vd = flagdevtype*(Vdi-Vbi)
+      Vb = 0.0
+      flagsweep = 0.0  
+      #sweep voltage reference for drain-source
+      if (Vd<Vs):
+        Vs = Vd
+        Vd = flagdevtype*(Vsi-Vbi)
+        flagsweep = 1.0
+        if self.RDSMOD==0:
+          Rdaux = self.Rs
+          Rsaux = self.Rs      
+        else:
+          Rdaux = self.Rs
+          Rsaux = self.Rd
       else:
-        Rdaux = self.Rs
-        Rsaux = self.Rd
-    else:
-      if self.RDSMOD==0:
-        Rdaux = self.Rs
-        Rsaux = self.Rs      
+        if self.RDSMOD==0:
+          Rdaux = self.Rs
+          Rsaux = self.Rs      
+        else:  
+          Rdaux = self.Rd
+          Rsaux = self.Rs    
+     
+      #short channel effect calculations: threshold voltage shift and subthreshold swing degradation
+      vfb_n = (PHIG - self.phi_substrate -self.Eg/2.0-self.vt*log(self.Nch/self.ni))/self.vt
+      vth_fixed_factor_SI = vfb_n+log(self.Cins*self.vt/(self.q*self.ni**2.0*2.0*self.Ach/self.Nch)) 
+      rc  = (2.0*self.Cins/(self.Weff**2.0*self.ech/self.Ach))    
+      qdep  = (-self.q*self.Nch*self.Ach)/((self.vt)*self.Cins)
+      Vth =  vth_fixed_factor_SI*self.vt+log((qdep*rc)**2.0/(exp(qdep*rc)-qdep*rc-1.0))*self.vt
+      self.lamda = sqrt(self.ech*self.Ach/self.Cins*(1+rc/2.0))
+      
+      deltaVth = 0
+      #Vth roll-off
+      if ( self.VTHROMOD == 0):
+        vbi = self.vt*log(1e26*self.Nch/self.ni**2)
+        vsl = Vth - vfb_n*self.vt-(self.q*self.Nch/self.ech)*self.lamda**2
+        deltaVth = deltaVth + flagdevtype*(2*(vbi-vsl)*self.VTHROFIT/(2*cosh(self.Lg/( self.lambdafitRO*2*self.lamda))-2) )
+      else:
+        deltaVth = deltaVth + flagdevtype*(self.vthrolloff)
+
+      #Vth DIBL effec
+      if ( self.VTHDIBLMOD == 0):
+        deltaVth = deltaVth + (-(Vd-Vs)*self.VTHDIBLFIT/(2*cosh(self.Lg/(self.lambdafitDIBL*2*self.lamda))-2) )
+      else:
+        deltaVth = deltaVth + flagdevtype*(self.vthdibl* (Vd-Vs))
+        
+      #SS calculation  
+      if (self.SSMOD==0):
+        vbi = self.vt*log(1e26*self.Nch/self.ni**2) #TODO: input Nd source/drain  
+        Ld =   self.lamdafitSS*self.lamda*sqrt(8.0)
+        #Ld = 2.0*self.Ach/(self.Weff)+2*(self.ech)*self.Cins/(self.Weff)
+        #Ld = 2.0*self.Ach/self.Weff+2.0*4.0*self.tins
+        yc = self.Lg/2.0+(Ld/(2*pi))*log(vbi/(vbi+(Vd-Vs)))
+        SS = (1.0/0.9)/((4.0/(pi))*sin(pi*yc/self.Lg)/cosh(0.5*pi*Ld/self.Lg)+(4.0/(3.0*pi))*sin(3.0*pi*yc/self.Lg)/cosh(3.0*0.5*pi*Ld/self.Lg)+(4.0/(5.0*pi))*sin(5.0*pi*yc/self.Lg)/cosh(5.0*0.5*pi*Ld/self.Lg))
+        #+(4.0/(7.0*pi))*sin(7.0*pi*yc/self.Lg)/cosh(7.0*0.5*pi*Ld/self.Lg)+(4.0/(9.0*pi))*sin(9.0*pi*yc/self.Lg)/cosh(9.0*0.5*pi*Ld/self.Lg)+(4.0/(11.0*pi))*sin(11.0*pi*yc/self.Lg)/cosh(11.0*0.5*pi*Ld/self.Lg)+(4.0/(13.0*pi))*sin(13.0*pi*yc/self.Lg)/cosh(13.0*0.5*pi*Ld/self.Lg)
+        nVtm = self.vt#*(SS)
+        SS = SS     
       else:  
-        Rdaux = self.Rd
-        Rsaux = self.Rs    
+        SS = 1.0+self.SSrolloff+self.SSdibl* (Vd-Vs)    
+        nVtm = self.vt#*(SS)
+        SS = SS
    
-    #short channel effect calculations: threshold voltage shift and subthreshold swing degradation
-    vfb_n = (PHIG - self.phi_substrate -self.Eg/2.0-self.vt*log(self.Nch/self.ni))/self.vt
-    vth_fixed_factor_SI = vfb_n+log(self.Cins*self.vt/(self.q*self.ni**2.0*2.0*self.Ach/self.Nch)) 
-    rc  = (2.0*self.Cins/(self.Weff**2.0*self.ech/self.Ach))    
-    qdep  = (-self.q*self.Nch*self.Ach)/((self.vt)*self.Cins)
-    Vth =  vth_fixed_factor_SI*self.vt+log((qdep*rc)**2.0/(exp(qdep*rc)-qdep*rc-1.0))*self.vt
-    self.lamda = sqrt(self.ech*self.Ach/self.Cins*(1+rc/2.0))
-    
-    deltaVth = 0
-    #Vth roll-off
-    if ( self.VTHROMOD == 0):
-      vbi = self.vt*log(1e26*self.Nch/self.ni**2)
-      vsl = Vth - vfb_n*self.vt-(self.q*self.Nch/self.ech)*self.lamda**2
-      deltaVth = deltaVth + flagdevtype*(2*(vbi-vsl)*self.VTHROFIT/(2*cosh(self.Lg/( self.lambdafitRO*2*self.lamda))-2) )
-    else:
-      deltaVth = deltaVth + flagdevtype*(self.vthrolloff)
-
-    #Vth DIBL effec
-    if ( self.VTHDIBLMOD == 0):
-      deltaVth = deltaVth + (-(Vd-Vs)*self.VTHDIBLFIT/(2*cosh(self.Lg/(self.lambdafitDIBL*2*self.lamda))-2) )
-    else:
-      deltaVth = deltaVth + flagdevtype*(self.vthdibl* (Vd-Vs))
-      
-    #SS calculation  
-    if (self.SSMOD==0):
-      vbi = self.vt*log(1e26*self.Nch/self.ni**2) #TODO: input Nd source/drain  
-      Ld =   self.lamdafitSS*self.lamda*sqrt(8.0)
-      #Ld = 2.0*self.Ach/(self.Weff)+2*(self.ech)*self.Cins/(self.Weff)
-      #Ld = 2.0*self.Ach/self.Weff+2.0*4.0*self.tins
-      yc = self.Lg/2.0+(Ld/(2*pi))*log(vbi/(vbi+(Vd-Vs)))
-      SS = (1.0/0.9)/((4.0/(pi))*sin(pi*yc/self.Lg)/cosh(0.5*pi*Ld/self.Lg)+(4.0/(3.0*pi))*sin(3.0*pi*yc/self.Lg)/cosh(3.0*0.5*pi*Ld/self.Lg)+(4.0/(5.0*pi))*sin(5.0*pi*yc/self.Lg)/cosh(5.0*0.5*pi*Ld/self.Lg))
-      #+(4.0/(7.0*pi))*sin(7.0*pi*yc/self.Lg)/cosh(7.0*0.5*pi*Ld/self.Lg)+(4.0/(9.0*pi))*sin(9.0*pi*yc/self.Lg)/cosh(9.0*0.5*pi*Ld/self.Lg)+(4.0/(11.0*pi))*sin(11.0*pi*yc/self.Lg)/cosh(11.0*0.5*pi*Ld/self.Lg)+(4.0/(13.0*pi))*sin(13.0*pi*yc/self.Lg)/cosh(13.0*0.5*pi*Ld/self.Lg)
-      nVtm = self.vt#*(SS)
-      SS = SS     
-    else:  
-      SS = 1.0+self.SSrolloff+self.SSdibl* (Vd-Vs)    
-      nVtm = self.vt#*(SS)
-      SS = SS
- 
-    #quantum mechanical effects - bias dependence parameter calculations
-    mx =  0.916 * self.MEL
-    fieldnormalizationfactor  = nVtm*self.Cins/(self.Weff*self.ech)
-    auxQMfact  = ((3.0/4.0)*3*self.HBAR*2.0*3.141516*self.q/(4*sqrt(2*mx)))**(2.0/3.0)
-    QMf   = self.QMFACTORCV*auxQMfact*(fieldnormalizationfactor)**(2.0/3.0)*(1/(self.q*nVtm))       
-       
-    #source side evaluation for charge  
-    Vch = Vs
-    qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
-   
-    #drain-source current model (normalized)
-    ids0,mu,vdsat,qd,qdsat,vedrainsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth,SS,flagsweep)
-
-    #drain-source current in Ampere [C/s]
-    idsfactor = (nVtm**2*self.Cins)/self.Lg
-    idsfinal = ids0*idsfactor
-    
-    #initial guess for drain-source current with source/drain resistances
-    if ((Vd-Vs)**2>1e-20):
-      idsfinal = idsfinal*(Vd-Vs)/((Vd-Vs)+idsfinal*(Rdaux+Rsaux))
-    else:
-      idsfinal = idsfinal
-    
-    #iteration to solve drain-source current including source and drain resistances
-    count=0
-    while (count<self.countRmodel):  
-      Vch = Vs+Rsaux*idsfinal
+      #quantum mechanical effects - bias dependence parameter calculations
+      mx =  0.916 * self.MEL
+      fieldnormalizationfactor  = nVtm*self.Cins/(self.Weff*self.ech)
+      auxQMfact  = ((3.0/4.0)*3*self.HBAR*2.0*3.141516*self.q/(4*sqrt(2*mx)))**(2.0/3.0)
+      QMf   = self.QMFACTORCV*auxQMfact*(fieldnormalizationfactor)**(2.0/3.0)*(1/(self.q*nVtm))       
+         
+      #source side evaluation for charge  
+      Vch = Vs
       qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
-      ids0,mu,vdsat,qd,qdsat,vedrainsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd-Rdaux*idsfinal,Vs+Rsaux*idsfinal,Vg,QMf,deltaVth,SS,flagsweep)
+     
+      #drain-source current model (normalized)
+      ids0,mu,vdsat,qd,qdsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth,SS,flagsweep)
+
+      #drain-source current in Ampere [C/s]
+      idsfactor = (nVtm**2*self.Cins)/self.Lg
+      idsfinal = ids0*idsfactor
       
-      #Newton iteration update    
-      f0 = idsfinal-ids0*idsfactor
-      f1 = UFCMidsf1update.f1(self,qs,qd,nVtm,PHIG,Rsaux,Rdaux)
-      idsfinal = idsfinal-f0/f1
-      count+=1
-    
-    #source-drain sweep in case Vd<Vs
-    if flagsweep ==1:
-      qaux = qs
-      qs = qd
-      qd = qs
-      idsfinal=-idsfinal
-    
-    #total current counting number of fins NFIN  
-    vedrain = -idsfinal/(qd*self.vt*self.Cins)
-    vesource = -idsfinal/(qs*self.vt*self.Cins)
-    Ids = flagdevtype*idsfinal*self.NFIN
-    Idnorm = Ids/self.Weff*1e-6
-    #gate charge, TODO: add source/drain terminal charges 
-    Qg = -((qs+qd)*0.5-(qs-qd)**2/(6*(-2*(qs+qd)+1)))*self.Cins*nVtm*self.Lg*self.NFIN*flagdevtype
-    
+      #initial guess for drain-source current with source/drain resistances
+      if ((Vd-Vs)**2>1e-20):
+        idsfinal = idsfinal*(Vd-Vs)/((Vd-Vs)+idsfinal*(Rdaux+Rsaux))
+      else:
+        idsfinal = idsfinal
+      
+      #iteration to solve drain-source current including source and drain resistances
+      count=0
+      '''
+      while (count<self.countRmodel):  
+        Vch = Vs+Rsaux*idsfinal
+        qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
+        ids0,mu,vdsat,qd,qdsat,vedrainsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd-Rdaux*idsfinal,Vs+Rsaux*idsfinal,Vg,QMf,deltaVth,SS,flagsweep)
+        
+        #Newton iteration update    
+        f0 = idsfinal-ids0*idsfactor
+        f1 = UFCMidsf1update.f1(self,qs,qd,nVtm,PHIG,Rsaux,Rdaux)
+        idsfinal = idsfinal-f0/f1
+        count+=1
+      '''
+      #source-drain sweep in case Vd<Vs
+      if flagsweep ==1:
+        qaux = qs
+        qs = qd
+        qd = qs
+        idsfinal=-idsfinal
+      
+      #total current counting number of fins NFIN  
+      vedrain = -idsfinal/(qd*self.vt*self.Cins)
+      vesource = -idsfinal/(qs*self.vt*self.Cins)
+      Ids = flagdevtype*idsfinal*self.NFIN
+      Idnorm = Ids/self.Weff*1e-6
+      #gate charge, TODO: add source/drain terminal charges 
+      Qg = -((qs+qd)*0.5-(qs-qd)**2/(6*(-2*(qs+qd)+1)))*self.Cins*nVtm*self.Lg*self.NFIN*flagdevtype
+
+      
+
+      '''dqd = 1/(1.0-1.0/qd)
+      dqs = 1/(1.0-1.0/qs)
+      dQg =  -((dqs+dqd)*0.5)*self.Cins*nVtm*self.Lg*self.NFIN*flagdevtype
+      dQ = dQg/(self.Lg*self.NFIN*self.Weff)
+      dE_FE =  (2.0*self.alpha1_P+2.0*4.0*self.alpha11_P*Q**2.0+5.0*6.0*self.alpha111_P*Q**4.0+7.0*8.0*self.alpha1111_P*Q**6.0)*dQ
+      dV_FE_delta = 1-dE_FE*self.t_FE
+      V_FE =  V_FE_old- V_FE_delta/dV_FE_delta
+      print "Iteration: "+ str(count_FE)
+      print "V_FE_old: "+str(V_FE_old)
+      print "V_FE: "+str(V_FE )
+      print "V_FE_delta: "+str(V_FE_delta)
+      print "dV_FE_delta: "+str(dV_FE_delta)
+      print "delta V_FE: "+str(- V_FE_delta/dV_FE_delta)'''
     #attach values of variables to return
-    variablesvalues = []
+    
+    '''variablesvalues = []
     for var in self.returnvar:
-      exec 'variablesvalues.append('+var+')'
+      exec 'variablesvalues.append('+var+')'''
+    #for var in self.returnvar:
+    #  self.variablesvalues[var] =   
     #print variablesvalues
-    return  variablesvalues,self.returnvar
+    return  Ids,Qg
 
