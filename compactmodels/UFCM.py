@@ -192,17 +192,17 @@ class compactmodel:
 
       #wrap to include FE voltage drop
       Vgiaux = Vgi-V_FE
-      Ids,Qg = self.analog2(Vdi,Vgiaux,Vsi,Vbi)#)
+      Ids,Qg,dQg_dVg = self.analog2(Vdi,Vgiaux,Vsi,Vbi)#)
       
       #derivate constructions
-      Idsv,Qgv = self.analog2(Vdi,UTPM.init_jacobian(Vgiaux),Vsi,Vbi)
-      dQg_dVgp = UTPM.extract_jacobian(Qgv)
+      #Idsv,Qgv,dQg_dVg_v = self.analog2(Vdi,UTPM.init_jacobian(Vgiaux),Vsi,Vbi)
+      #dQg_dVgp = UTPM.extract_jacobian(Qgv)
       dE_FE_dQbp = 2.0*self.alpha1_P+3.0*4.0*self.alpha11_P*Q**2.0+5.0*6.0*self.alpha111_P*Q**4.0+7.0*8.0*self.alpha1111_P*Q**6.0; 
       dVgp_dQbp = - (self.t_FE*dE_FE_dQbp*1/(self.Lg*self.NFIN*self.Weff))
-      
+      #print dQg_dVgp[0], dQg_dVg_a
       #Newton Method
       f = Qg_old - Qg
-      df = 1-dQg_dVgp[0]*dVgp_dQbp
+      df = 1-dQg_dVg*dVgp_dQbp
       Qg = Qg_old-f/df
       V_FE_delta = V_FE-V_FE_old
       
@@ -336,18 +336,18 @@ class compactmodel:
       
       #iteration to solve drain-source current including source and drain resistances
       count=0
-      '''
+      
       while (count<self.countRmodel):  
         Vch = Vs+Rsaux*idsfinal
         qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
-        ids0,mu,vdsat,qd,qdsat,vedrainsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd-Rdaux*idsfinal,Vs+Rsaux*idsfinal,Vg,QMf,deltaVth,SS,flagsweep)
+        ids0,mu,vdsat,qd,qdsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd-Rdaux*idsfinal,Vs+Rsaux*idsfinal,Vg,QMf,deltaVth,SS,flagsweep)
         
         #Newton iteration update    
         f0 = idsfinal-ids0*idsfactor
         f1 = UFCMidsf1update.f1(self,qs,qd,nVtm,PHIG,Rsaux,Rdaux)
         idsfinal = idsfinal-f0/f1
         count+=1
-      '''
+      
       #source-drain sweep in case Vd<Vs
       if flagsweep ==1:
         qaux = qs
@@ -362,22 +362,11 @@ class compactmodel:
       Idnorm = Ids/self.Weff*1e-6
       #gate charge, TODO: add source/drain terminal charges 
       Qg = -((qs+qd)*0.5-(qs-qd)**2/(6*(-2*(qs+qd)+1)))*self.Cins*nVtm*self.Lg*self.NFIN*flagdevtype
-
       
-
-      '''dqd = 1/(1.0-1.0/qd)
-      dqs = 1/(1.0-1.0/qs)
-      dQg =  -((dqs+dqd)*0.5)*self.Cins*nVtm*self.Lg*self.NFIN*flagdevtype
-      dQ = dQg/(self.Lg*self.NFIN*self.Weff)
-      dE_FE =  (2.0*self.alpha1_P+2.0*4.0*self.alpha11_P*Q**2.0+5.0*6.0*self.alpha111_P*Q**4.0+7.0*8.0*self.alpha1111_P*Q**6.0)*dQ
-      dV_FE_delta = 1-dE_FE*self.t_FE
-      V_FE =  V_FE_old- V_FE_delta/dV_FE_delta
-      print "Iteration: "+ str(count_FE)
-      print "V_FE_old: "+str(V_FE_old)
-      print "V_FE: "+str(V_FE )
-      print "V_FE_delta: "+str(V_FE_delta)
-      print "dV_FE_delta: "+str(dV_FE_delta)
-      print "delta V_FE: "+str(- V_FE_delta/dV_FE_delta)'''
+      dqd = -1/(1.0-1.0/qd)/self.vt
+      dqs = -1/(1.0-1.0/qs)/self.vt
+      dQg_dVg =  -((dqs+dqd)*0.5)*self.Cins*nVtm*self.Lg*self.NFIN*flagdevtype
+      
     #attach values of variables to return
     
     '''variablesvalues = []
@@ -386,5 +375,5 @@ class compactmodel:
     #for var in self.returnvar:
     #  self.variablesvalues[var] =   
     #print variablesvalues
-    return  Ids,Qg
+    return  Ids,Qg,dQg_dVg
 
