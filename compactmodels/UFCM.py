@@ -157,7 +157,7 @@ class compactmodel:
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     exec "self."+name+' = '+'value'   
-  def analog(self,*args):
+  '''def analog(self,*args):
     Vdi,Vgi,Vsi,Vbi = args
     
     #geometrie Unified FinFET model parameter calculations, TODO: add more geometries
@@ -206,9 +206,9 @@ class compactmodel:
       Qg = Qg_old-f/df
       V_FE_delta = V_FE-V_FE_old
       
-    return  [Ids,Qg,V_FE,V_FE_delta],self.returnvar
+    return  [Ids,Qg,V_FE,V_FE_delta],self.returnvar'''
     
-  def analog2(self,*args):
+  def analog(self,*args):
     """this function returns the drain current or other variables for given bias"""  
     
     ###################################################
@@ -369,11 +369,11 @@ class compactmodel:
       
     #attach values of variables to return
     
-    '''variablesvalues = []
+    variablesvalues = []
     for var in self.returnvar:
-      exec 'variablesvalues.append('+var+')'''
+      exec 'variablesvalues.append('+var+')' 
     #for var in self.returnvar:
     #  self.variablesvalues[var] =   
     #print variablesvalues
-    return  Ids,Qg,dQg_dVg
+    return  variablesvalues, self.returnvar#Ids,Qg,dQg_dVg
 
