@@ -133,54 +133,57 @@ class hspicepython:
     
     simfile.close()   
     #hspice run file TODO: how to check simulation was aborted?
-    os.system('hspice ' + self.simulationfolder +self.simfilename+'.sp -o ' + self.simulationfolder+self.simfilename)
-   
-    #parse results
-    outputfiletoread = open(self.simulationfolder+self.simfilename+'.lis', 'r') 
-    #state machine
-    #00: searching for "x1:"
-    #01: searching for x1.d and parsing parameters
-    #02: search y, meanhwile parsing data id-vg
-    state=0
+    simcheck = os.system('hspice ' + self.simulationfolder +self.simfilename+'.sp -o ' + self.simulationfolder+self.simfilename)
+    print 'simcheck=', simcheck
+    if simcheck != 0:
+      print 'Simulation Aborted'
+    else:
+      #parse results
+      outputfiletoread = open(self.simulationfolder+self.simfilename+'.lis', 'r') 
+      #state machine
+      #00: searching for "x1:"
+      #01: searching for x1.d and parsing parameters
+      #02: search y, meanhwile parsing data id-vg
+      state=0
 
-    #TODO: parse case with many output variables, it include more than one read
-    countruns=0
-    for line in outputfiletoread:
-      #print line
-      if (state==0):
-        if (line.find("x1:")>-1):
-          state=1
-          hspicefileresult = open(self.simulationfolder+self.simresultfilename, 'w') 
-          stringoutput = ''
-          for Vbias in self.nodes:
-            stringoutput = stringoutput +Vbias+' '
-          for parameteraux in self.deviceparameter:
-            stringoutput = stringoutput+parameteraux+' '
-          for varname in self.vartosave:
-            stringoutput = stringoutput + varname+' '   
-          hspicefileresult.write(stringoutput+' \n') 
-          i=0
-      elif (state==1):
-        if line.find("y")>-1 :
-          state=0
-          hspicefileresult.close()
-        else:     
-          column=len(allvaldc)
-          stringtowrite = ''
-          j=0
-          while (j<column):
-            stringtowrite = stringtowrite+str(allvaldc[j][i])+' '
-            j+=1
-          #add results  
-          stringinline = str.split(line)
-          resultcount = 0
-          for result in stringinline:
-            if resultcount>0:
-              stringtowrite = stringtowrite + result+' '
-            resultcount+=1 
-          hspicefileresult.write(stringtowrite+'\n') 
-          i+=1
-          
+      #TODO: parse case with many output variables, it include more than one read
+      countruns=0
+      for line in outputfiletoread:
+	#print line
+	if (state==0):
+    	  if (line.find("x1:")>-1):
+    	    state=1
+    	    hspicefileresult = open(self.simulationfolder+self.simresultfilename, 'w') 
+    	    stringoutput = ''
+    	    for Vbias in self.nodes:
+    	      stringoutput = stringoutput +Vbias+' '
+    	    for parameteraux in self.deviceparameter:
+    	      stringoutput = stringoutput+parameteraux+' '
+    	    for varname in self.vartosave:
+    	      stringoutput = stringoutput + varname+' '	
+    	    hspicefileresult.write(stringoutput+' \n') 
+    	    i=0
+	elif (state==1):
+    	  if line.find("y")>-1 :
+    	    state=0
+    	    hspicefileresult.close()
+    	  else:	  
+    	    column=len(allvaldc)
+    	    stringtowrite = ''
+    	    j=0
+    	    while (j<column):
+    	      stringtowrite = stringtowrite+str(allvaldc[j][i])+' '
+    	      j+=1
+    	    #add results  
+    	    stringinline = str.split(line)
+    	    resultcount = 0
+    	    for result in stringinline:
+    	      if resultcount>0:
+    		stringtowrite = stringtowrite + result+' '
+    	      resultcount+=1 
+    	    hspicefileresult.write(stringtowrite+'\n') 
+    	    i+=1
+    return simcheck    
           
   def hspicetotex(self,stringstart,stringend):
     outputfiletoread = open(self.simulationfolder+self.simfilename+'.lis', 'r') 

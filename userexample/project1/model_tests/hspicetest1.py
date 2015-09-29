@@ -1,7 +1,7 @@
 #example: run hspice Id-Vg using python
 #Juan Duarte, BSIM Group
 
-rootfolder = '/users/jpduarte/research'
+rootfolder = '/users/sourabh/sourabh/Model_Developer'
 
 #indicate path for folders containing required classes
 import sys
@@ -19,9 +19,9 @@ import matplotlib.pyplot as plt
 #creates hspice python class
 sim1 = hspicepython.hspicepython('idvg')
 #add path to verilog code with model, TODO: include case where model is already incorporated to simulator
-sim1.updateparameter('modelpath','/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg.va')
+sim1.updateparameter('modelpath','/users/sourabh/sourabh/IMG/BSIMIMG/code/bsimimg.va')
 #add path to model card of device under study
-sim1.updateparameter('modelcardpath','/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/benchmark_tests/modelcard.nmos')
+sim1.updateparameter('modelcardpath','/users/sourabh/sourabh/IMG/BSIMIMG/benchmark_tests/modelcard.nmos')
 #add path to folder which will contain simulation files
 sim1.updateparameter('simulationfolder',rootfolder+'/cmdp/userexample/project1/hspicesimulations/idvg/')
 #define simulation file name
@@ -42,13 +42,15 @@ sim1.updateparameter('vartosave',['Ids','qs'])
 ###########################################################################
 ##################Simulation Run###########################################
 ###########################################################################
-sim1.runsim()
-
+w=sim1.runsim()
+if w==0: 
 #plot
-P1 = plotgeneral.plotgeneral()
-pathandfile = sim1.simulationfolder + sim1.simresultfilename
-P1.updateparameter('symbol','o')
-P1.updateparameter('lw',2)
-P1.plotfiledata(pathandfile,'Vg','Ids',1)
+  P1 = plotgeneral.plotgeneral()
+  pathandfile = sim1.simulationfolder + sim1.simresultfilename
+  P1.updateparameter('symbol','o')
+  P1.updateparameter('lw',2)
+  P1.plotfiledata(pathandfile,'Vg','Ids',1)
 
-plt.show() 
+  plt.show() 
+else:
+  print 'Simulation Aborted'
