@@ -136,6 +136,9 @@ class hspicepython:
     os.system('hspice ' + self.simulationfolder +self.simfilename+'.sp -o ' + self.simulationfolder+self.simfilename)
    
     #parse results
+    self.hspicetotex('x','y',allvaldc)
+   
+    '''#parse results
     outputfiletoread = open(self.simulationfolder+self.simfilename+'.lis', 'r') 
     #state machine
     #00: searching for "x1:"
@@ -145,6 +148,7 @@ class hspicepython:
 
     #TODO: parse case with many output variables, it include more than one read
     countruns=0
+    print "print results?"
     for line in outputfiletoread:
       #print line
       if (state==0):
@@ -179,10 +183,10 @@ class hspicepython:
               stringtowrite = stringtowrite + result+' '
             resultcount+=1 
           hspicefileresult.write(stringtowrite+'\n') 
-          i+=1
+          i+=1'''
           
           
-  def hspicetotex(self,stringstart,stringend):
+  def hspicetotex(self,stringstart,stringend,allvaldc):
     outputfiletoread = open(self.simulationfolder+self.simfilename+'.lis', 'r') 
     state=0
     #this take data from .lis file and save information in python dictionaries
@@ -193,20 +197,19 @@ class hspicepython:
     valuestoprint = {}
     flagfirstread = 1 #use to save only once variable that is being sweeped for simulation, can be input voltage or time
     for line in outputfiletoread:
+      line = line.replace("x1:", "") #this replaces all string x1: for empty, so only variable name is saved
       #print line
       if (state==0):
+        #stays in this state until stringstart is found
         if (line.find(stringstart)==0):
-          print "go to state 1"
           state=1
       elif (state==1):
         stringinline = str.split(line)
         if len(stringinline)>0:
         
           if (is_number(stringinline[0])):
-          
             if flagfirstread==1:
               namesaux = ['sweepvar']+namesaux
-              print namesaux
 
             totalvariables= totalvariables + namesaux
               
@@ -217,7 +220,6 @@ class hspicepython:
               vol_curr_string = vol_curr_string[1:]
             names_vol_curr = names_vol_curr + vol_curr_string
             state=2
-            print "go to state 2"
 
             count=0
             if flagfirstread==1:
@@ -226,14 +228,15 @@ class hspicepython:
               addint = 1 
             #this is to create cell for given printed variables
             for variable in namesaux:
-              valuestoprint[variable+'('+vol_curr_string[count]+')'] = []
+              valuestoprint[variable] = []
               count+=1
               
             count=0
             for variable in namesaux:
-              valuestoprint[variable+'('+vol_curr_string[count]+')'].append(stringinline[count+addint])
+              valuestoprint[variable].append(stringinline[count+addint])
               count+=1              
           else:
+            #this saves previous string so names can be saved
             vol_curr_string = namesaux
             namesaux = stringinline
 
@@ -241,7 +244,7 @@ class hspicepython:
         #print line
         if (line.find(stringend)==0) :
           flagfirstread = 0
-          print "go to state 0"
+
           state=0
         else:   
           stringinline = str.split(line)
@@ -251,14 +254,19 @@ class hspicepython:
           else:
             addint = 1        
           for variable in namesaux:
-            valuestoprint[variable+'('+vol_curr_string[count]+')'].append(stringinline[count+addint])
+            valuestoprint[variable].append(stringinline[count+addint])
             count+=1              
-          
+
     #write all data to text file   
     hspicefileresult = open(self.simulationfolder+self.simresultfilename, 'w')        
     namesfinal = valuestoprint.keys()
     stringtowrite = ''    
     count=0  
+    
+    for Vbias in self.nodes:
+      stringtowrite = stringtowrite +Vbias.lower()+' '
+    for parameteraux in self.deviceparameter:
+      stringtowrite = stringtowrite+parameteraux.lower()+' '    
     for variable in namesfinal:
       stringtowrite = stringtowrite + variable+ ' '
       count+=1
@@ -269,6 +277,13 @@ class hspicepython:
     count=0
     while (count<lenarrayaux):
       stringtowrite = '' 
+      column=len(allvaldc)
+
+      j=0
+      while (j<column):
+        stringtowrite = stringtowrite+str(allvaldc[j][count])+' '
+        j+=1      
+      
       for namevar in namesfinal:
         stringtowrite = stringtowrite + valuestoprint[namevar][count] + ' '
       hspicefileresult.write(stringtowrite[:-1]+'\n')
