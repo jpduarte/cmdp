@@ -2,7 +2,7 @@
 #author: Juan Pablo Duarte, jpduarte@berkeley.edu
 #BSIM Group, UC Berkeley
 
-import supportfunctions as sf
+#import supportfunctions as sf
 import matplotlib.pyplot as plt
 from numpy import loadtxt
 import numpy as np
@@ -106,10 +106,10 @@ class plotgeneral:
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     if type(value) == type(''):
-      exec "self."+name+' = '+'\''+value+'\''
+      exec ("self."+name+' = '+'\''+value+'\'')
       #print "self."+name+' = '+'\''+value+'\''
     else:
-      exec "self."+name+' = '+str(value)    
+      exec ("self."+name+' = '+str(value) )   
       #print "self."+name+' = '+str(value) 
     
   def plotfiledata(self,pathandfile,xstring,ystring,fignumber):

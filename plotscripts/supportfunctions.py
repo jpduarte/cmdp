@@ -1,11 +1,14 @@
 #aux functions
 import numpy as np
+#from itertools import imap
 
 
 def meshgrid2(*arrs):
 #this generate array similar to ngrid in matlab for many input vectors
     arrs = tuple(reversed(arrs))  #edit
-    lens = map(len, arrs)
+    lens = list(map(len, arrs))# list(map(int,payList))
+    #print (lens)
+    #lens = list(imap(int, arrs))
     dim = len(arrs)
 
     sz = 1
@@ -28,6 +31,8 @@ def meshgrid2(*arrs):
     for variablearray in ans[::-1]:
         ans[i] = np.concatenate(variablearray.reshape(totallength,1))
         i=i+1
+    #print (ans)
+    #print (type(ans))
     return ans
     
 def inplace_change(filename, old_string, new_string):
@@ -40,4 +45,4 @@ def inplace_change(filename, old_string, new_string):
                 f.flush()
                 f.close()
         else:
-                print 'No occurances of "{old_string}" found.'.format(**locals())
+                print ('No occurances of "{old_string}" found.'.format(**locals()))

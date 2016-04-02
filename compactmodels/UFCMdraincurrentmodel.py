@@ -43,8 +43,11 @@ def unified_normilized_ids(self,qms,vt,phi_gate,Vd,Vs,Vg,QMFACTORCVfinal,deltaVt
   if (IDSMOD==0):
     #normalized drain current model ref: Unified FinFET Compact Model: Modelling Trapezoidal Triple-Gate FinFETs 
     Vch = Vd
-    qmd = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,vt,phi_gate,QMFACTORCVfinal,SS)
-  
+    if (self.NCFETMOD>0):
+      qmd = UFCMchargemodel.unified_charge_model_nc(self,Vg-deltaVth,Vch,vt,phi_gate,QMFACTORCVfinal,SS)
+    else:
+      qmd = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,vt,phi_gate,QMFACTORCVfinal,SS)
+      
     rc  = (2*Cins/(Weff**2*ech/Ach))#TODO: check factor of 2 in rc?
     qdep  = (-q*Nch*Ach)/(vt*Cins)
     qh = 1/rc-qdep

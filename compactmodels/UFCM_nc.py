@@ -154,6 +154,11 @@ class compactmodel:
     self.alpha111_P = 1.3357e+08
     self.alpha1111_P = 0
     self.t_FE = 100e-9
+    
+    self.NCFETMOD = 0
+    self.a0 = -1.0 #m/F
+    self.b0 = 0#1.3e10 #m^5/F/coul^2
+    self.c0 = 0 #m^9/F/coul^4
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     exec ("self."+name+' = '+'value'   )
@@ -319,8 +324,10 @@ class compactmodel:
          
       #source side evaluation for charge  
       Vch = Vs
-      qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
-     
+      if (self.NCFETMOD>0):
+        qs = UFCMchargemodel.unified_charge_model_nc(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
+      else:
+        qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
       #drain-source current model (normalized)
       ids0,mu,vdsat,qd,qdsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth,SS,flagsweep)
 
@@ -337,7 +344,7 @@ class compactmodel:
       #iteration to solve drain-source current including source and drain resistances
       count=0
       
-      while (count<self.countRmodel):  
+      '''while (count<self.countRmodel):  
         Vch = Vs+Rsaux*idsfinal
         qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
         ids0,mu,vdsat,qd,qdsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd-Rdaux*idsfinal,Vs+Rsaux*idsfinal,Vg,QMf,deltaVth,SS,flagsweep)
@@ -346,7 +353,7 @@ class compactmodel:
         f0 = idsfinal-ids0*idsfactor
         f1 = UFCMidsf1update.f1(self,qs,qd,nVtm,PHIG,Rsaux,Rdaux)
         idsfinal = idsfinal-f0/f1
-        count+=1
+        count+=1'''
       
       #source-drain sweep in case Vd<Vs
       if flagsweep ==1:

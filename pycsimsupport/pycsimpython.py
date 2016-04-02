@@ -33,7 +33,7 @@ class pycsimpython:
     self.vartosave = ['Ids']#sim1.updateparameter('vartosafe',['Ids','qs']) #add variables to save   
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
-    exec "self."+name+' = '+'value'    
+    exec ("self."+name+' = '+'value'    )
   def runsim(self):
     #check if simulation path exist, if not, it create the folder
     if not os.path.exists(self.simulationfolder):
@@ -58,7 +58,7 @@ class pycsimpython:
           stringtoexec = 'device.'+stringinline[0]+ '='+valueparam
         else:
           stringtoexec = 'device.'+stringinline[0] +'='+'device.'+valueparam        
-        exec stringtoexec     
+        exec (stringtoexec     )
     modelcard.close()
     
     device.returnvar = self.vartosave
@@ -82,15 +82,17 @@ class pycsimpython:
     for arraybias in self.dcbiases:
       stringarraybias = 'ar'+str(count) + ' = np.asarray(arraybias)'
       stringallarraybias = stringallarraybias + ' ar'+str(count)+',' 
-      exec stringarraybias
+      exec (stringarraybias)
       count+=1
     for arraydeviceparameter in self.deviceparametervalue:
       stringarraybias = 'ar'+str(count) + ' = np.asarray(arraydeviceparameter)'
       stringallarraybias = stringallarraybias + ' ar'+str(count)+',' 
-      exec stringarraybias
-      count+=1          
-    stringtoeval = 'allvaldc = supportfunctions.meshgrid2('+stringallarraybias[:-1]+')'
-    exec stringtoeval
+      exec (stringarraybias)
+      count+=1         
+      
+    stringtoeval = ('supportfunctions.meshgrid2('+stringallarraybias[:-1]+')')
+    allvaldc = eval (stringtoeval)
+
     
     #this save to text file by evaluating model
     i=0
@@ -106,7 +108,7 @@ class pycsimpython:
           bias.append(allvaldc[j][i])
         else:
           stringtoexec = 'device.'+self.deviceparameter[j-len(self.nodes)]+ '='+str(allvaldc[j][i])
-          exec stringtoexec
+          exec (stringtoexec)
         j+=1  
       valuesvar,namesvar = device.analog(*tuple(bias))#model evaluation
       resultsimstring = ' '.join(map(str, valuesvar)) 
