@@ -3,7 +3,7 @@
 |                                                        |
 |          Synopsys Unified Verilog-A (pVA v2.0)         |
 |                                                        |
-|       Machine Name: bwrcrdsl-3.eecs.berkeley.edu       |
+|       Machine Name: bwrcrdsl-2.EECS.Berkeley.EDU       |
 | Copyright (c) 2012 Synopsys Inc., All Rights Reserved. |
 |                                                        |
  --------------------------------------------------------
@@ -13,31 +13,46 @@ HSP_HOME:   /tools/synopsys/hspice/G-2012.06-ENG1/hspice
 HSP_ARCH:   linux
 HSP_GCC :   /tools/synopsys/hspice/G-2012.06-ENG1/hspice/GNU/amd64/gcc-4.5.2-static/bin/gcc -m32 
 HSP_GCC_VER:   4.5.2
-Working-Dir: /users/jpduarte/research/cmdp/userexample/project1/model_tests
+Working-Dir: /users/jpduarte/research/userjp/project1/model_tests
 Args:        -p hsp -t spi -f /users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/idvg/hspicesimaux.pvadir/pvaHDL.lis -o /users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/idvg/hspicesimaux.pvadir 
 
 
-Begin of pVA compiling on Tue Apr  7 17:23:15 2015
+Begin of pVA compiling on Mon Oct 26 14:15:23 2015
 
 Parsing '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg.va'
 Parsing include file '/tools/synopsys/hspice/G-2012.06-ENG1/hspice/include/constants.vams'
 Parsing include file '/tools/synopsys/hspice/G-2012.06-ENG1/hspice/include/disciplines.vams'
 Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/common_defs.include'
+Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg_sp_new.include'
 Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg_body.include'
 Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/bsimimg_binning.include'
+Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/potential_iteration.include'
+Parsing include file '/users/jpduarte/BSIM_CM_Matlab/BSIM_model_development_v2/DM_Verilog_Hspice/Models_Verilog/BSIMIMG/code/potential_iteration.include'
 
-End of pVA compiling on Tue Apr  7 17:23:15 2015
+End of pVA compiling on Mon Oct 26 14:15:23 2015
 
 
-End of build pVA DB on Tue Apr  7 17:23:15 2015
+End of build pVA DB on Mon Oct 26 14:15:23 2015
+
+*pvaI* Module (bsimimg): 4 unexpanded port, 0 init, 3944 behav, 41 contrib, 110/4156 expr(s)*pvaI* 
+*pvaI*        Has DIS (ST SB), 9 afCount
+*pvaI*        0 const-G and 0 const-C, Has switch branch.
+*pvaI* Module (bsimimg): generated 3 flow node(s) during compilation.
+
+End of pVA genC on Mon Oct 26 14:15:29 2015
+
+*pvaI* #### Total 970 line-size(s), 110 expr(s), 41 contr(s), 0 init(s), 3944 behav(s), 4 port(s)
+
+Generating /users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/idvg/hspicesimaux.pvadir/pvaRTL_linux.so
 
 
-/users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/idvg/hspicesimaux.pvadir/pvaRTL_linux.so is reused
+End of submitting pVA /users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/idvg/hspicesimaux.pvadir/pvaRTL.mak on Mon Oct 26 14:15:43 2015
 
-End of pVA elaboration on Tue Apr  7 17:23:15 2015
+
+End of pVA elaboration on Mon Oct 26 14:15:43 2015
 
 *pvaI* Creating Verilog-A module 'bsimimg' for X1
 
 
-pVA concluded on Tue Apr  7 17:23:16 2015
+pVA concluded on Mon Oct 26 14:15:44 2015
 

@@ -2,12 +2,12 @@
  Input File: /users/jpduarte/research/cmdp/userexample/project1/hspicesimulation
  lic:
  lic: FLEXlm: v10.8
- lic: USER:   jpduarte             HOSTNAME: bwrcrdsl-3.eecs.berkeley.edu
- lic: HOSTID:                      PID:      29661
+ lic: USER:   jpduarte             HOSTNAME: bwrcrdsl-2.EECS.Berkeley.EDU
+ lic: HOSTID:                      PID:      25642
  lic: Using FLEXlm license file:
  lic: 1701@sunv40z-1.eecs.berkeley.edu
  lic: Checkout 1 hspice
- lic: License/Maintenance for hspice will expire on 19-dec-2015/2014.09
+ lic: License/Maintenance for hspice will expire on 19-dec-2015/2015.06
  lic: 1(in_use)/50(total) FLOATING license(s) on SERVER sunv40z-1.eecs.berkeley.
  lic:
  init: begin read circuit files,  cpu clock=  3.00E-02
@@ -45,16 +45,16 @@
        option post
        option ingold
        option measfo   =     1.00
- init: end read circuit files,  cpu clock=  7.00E-02 memory=    169 kb
- init: begin check errors,  cpu clock=  7.00E-02
+ init: end read circuit files,  cpu clock=  5.72E+00 memory=    169 kb
+ init: begin check errors,  cpu clock=  5.72E+00
  **warning**  No DC path to ground from node        0:                0.0
- init: end check errors,  cpu clock=  8.00E-02 memory=    169 kb
- init: begin setup matrix, pivot=     0 cpu clock=  8.00E-02
-       establish matrix -- done,  cpu clock=  8.00E-02 memory=    170 kb
-       re-order matrix -- done,  cpu clock=  8.00E-02 memory=    170 kb
- init: end setup matrix,  cpu clock=  8.00E-02 memory=    181 kb
+ init: end check errors,  cpu clock=  5.75E+00 memory=    169 kb
+ init: begin setup matrix, pivot=     0 cpu clock=  5.75E+00
+       establish matrix -- done,  cpu clock=  5.75E+00 memory=    170 kb
+       re-order matrix -- done,  cpu clock=  5.75E+00 memory=    170 kb
+ init: end setup matrix,  cpu clock=  5.75E+00 memory=    181 kb
  output: /users/jpduarte/research/cmdp/userexample/project1/hspicesimulations/id
- sweep: dc dc0    begin, #sweeps= 200 cpu clock=  9.00E-02
- sweep: dc dc0    end,  cpu clock=  3.40E-01 memory=    185 kb
+ sweep: dc dc0    begin, #sweeps= 200 cpu clock=  5.75E+00
+ sweep: dc dc0    end,  cpu clock=  6.21E+00 memory=    187 kb
 >info:         ***** hspice job concluded
  lic: Release hspice token(s)

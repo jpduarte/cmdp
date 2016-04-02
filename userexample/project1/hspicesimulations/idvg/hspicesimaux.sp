@@ -1,5 +1,5 @@
 *script to generate hspice simulation using cmdp, Juan Duarte 
-*Date: 04/07/2015, time: 17:23:15
+*Date: 10/26/2015, time: 14:15:21
 
 .option abstol=1e-6 reltol=1e-6 post ingold 
 .option measform=1 
@@ -224,5 +224,5 @@ X1 Vd Vg Vs Vb nmos1 L = 'L_value'
 1.0 1.0 0 0 1e-06 
 .ENDDATA 
 .dc sweep DATA = datadc 
-.print dc X1:Ids 
+.print dc X1:Ids X1:qs 
 .end
