@@ -392,44 +392,38 @@ class compactmodel:
           while (i<50):
             i = i+1
             qm      = -Vov*2.0*nss
-            vfe = a0*(-qm)+b0*(-qm)**3.0+c0*(-qm)**5.0
+            vfe = a0*qm+b0*qm**3.0+c0*qm**5.0
             Vov         = (Vg_local_N-vfe-vth_N_Sub)*0.5/nss          
           qs0=qm
           qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
           x0      = qtrc/(exp(qtrc)-qtrc-1.0)
           x1      = qtrc*x0
           
-          vfe = a0*(-qm)+b0*(-qm)**3.0+c0*(-qm)**5.0
-          dvef = -a0-3.0*b0*(-qm)**2.0-5.0*c0*(-qm)**4.0
-          ddvfe= 6.0*b0*qm+20.0*c0*qm**3.0
+          vfe = a0*qm+b0*qm**3.0+c0*qm**5.0
           vfe1 = vfe*vt
           f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
-          f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+dvef
-          f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
+          f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+a0+3.0*b0*qm**2.0+5.0*c0*qm**4.0
+          f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+6.0*b0*qm+20.0*c0*qm**3.0
           delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
           qm      = qm+delta
           delta1 = delta
           qs1=qm
           
-          vfe = a0*(-qm)+b0*(-qm)**3.0+c0*(-qm)**5.0
-          dvef = -a0-3.0*b0*(-qm)**2.0-5.0*c0*(-qm)**4.0
-          ddvfe= 6.0*b0*qm+20.0*c0*qm**3.0
+          vfe = a0*qm+b0*qm**3.0+c0*qm**5.0
           vfe2 = vfe*vt
           f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
-          f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+dvef
-          f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
+          f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+a0+3.0*b0*qm**2.0+5.0*c0*qm**4.0
+          f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+6.0*b0*qm+20.0*c0*qm**3.0
           delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
           qm      = qm+delta
           delta2 = delta
           qs2 =qm
           
-          vfe = a0*(-qm)+b0*(-qm)**3.0+c0*(-qm)**5.0
-          dvef = -a0-3.0*b0*(-qm)**2.0-5.0*c0*(-qm)**4.0
-          ddvfe= 6.0*b0*qm+20.0*c0*qm**3.0
+          vfe = a0*qm+b0*qm**3.0+c0*qm**5.0
           vfe3 = vfe*vt
           f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
-          f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+dvef
-          f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
+          f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+a0+3.0*b0*qm**2.0+5.0*c0*qm**4.0
+          f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+6.0*b0*qm+20.0*c0*qm**3.0
           delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
           qm      = qm+delta
           delta3 = delta
@@ -441,21 +435,16 @@ class compactmodel:
             #
             i=0
             vfe=0
-            qm=0
             while (i<50):
               i = i+1
               Vov         = (Vg_local_N-vfe-vth_N_Sub)*0.5/nss
-              qmold = qm
               if (Vov>60):
                 qm      = -Vov*2.0*nss
-                qnew = qm
               else:
                 qm      = exp((Vg_local_N-vfe-vth_N_Sub)*0.5/nss)
                 qm      = 2.0*(1.0-sqrt(1.0+(log(1.0+qm))**2.0))
-                qnew = qm
-              deltaqm = qmnew - qmold
               print ('charge: ',qm)
-              vfe = a0*(-qm)+b0*(-qm)**3.0+c0*(-qm)**5.0
+              vfe = a0*qm+b0*qm**3.0+c0*qm**5.0
               print ('vfe: ',vfe  )
               #print ((Vg_local_N-vfe-vth_N_Sub)*0.5/nss)
             
@@ -466,37 +455,31 @@ class compactmodel:
             x0      = qtrc/(exp(qtrc)-qtrc-1.0)
             x1      = qtrc*x0
 
-            vfe = a0*(-qm)+b0*(-qm)**3.0+c0*(-qm)**5.0
-            dvef = -a0-3.0*b0*(-qm)**2.0-5.0*c0*(-qm)**4.0
-            ddvfe= 6.0*b0*qm+20.0*c0*qm**3.0
+            vfe = a0*qm+b0*qm**3.0+c0*qm**5.0
             vfe1 = vfe*vt
             f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
-            f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+dvef
-            f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
+            f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+a0+3.0*b0*qm**2.0+5.0*c0*qm**4.0
+            f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+6.0*b0*qm+20.0*c0*qm**3.0
             delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
             qm      = qm+delta
             delta1 = delta
             qs1=qm
             
-            vfe = a0*(-qm)+b0*(-qm)**3.0+c0*(-qm)**5.0
-            dvef = -a0-3.0*b0*(-qm)**2.0-5.0*c0*(-qm)**4.0
-            ddvfe= 6.0*b0*qm+20.0*c0*qm**3.0
+            vfe = a0*qm+b0*qm**3.0+c0*qm**5.0
             vfe2 = vfe*vt
             f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
-            f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+dvef
-            f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
+            f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+a0+3.0*b0*qm**2.0+5.0*c0*qm**4.0
+            f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+6.0*b0*qm+20.0*c0*qm**3.0
             delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
             qm      = qm+delta
             delta2 = delta
             qs2 =qm
             
-            vfe = a0*(-qm)+b0*(-qm)**3.0+c0*(-qm)**5.0
-            dvef = -a0-3.0*b0*(-qm)**2.0-5.0*c0*(-qm)**4.0
-            ddvfe= 6.0*b0*qm+20.0*c0*qm**3.0
+            vfe = a0*qm+b0*qm**3.0+c0*qm**5.0
             vfe3 = vfe*vt
             f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
-            f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+dvef
-            f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
+            f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+a0+3.0*b0*qm**2.0+5.0*c0*qm**4.0
+            f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+6.0*b0*qm+20.0*c0*qm**3.0
             delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
             qm      = qm+delta
             delta3 = delta
@@ -511,7 +494,7 @@ class compactmodel:
             qs1=qm
             qs2=qm
             qs3=qm
-            vfe = a0*(-qm)+b0*(-qm)**3.0+c0*(-qm)**5.0
+            vfe = a0*qm+b0*qm**3.0+c0*qm**5.0
             vfe1 = vfe*vt    
             vfe2 = vfe*vt  
             vfe3 = vfe*vt   
