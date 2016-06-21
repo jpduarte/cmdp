@@ -26,7 +26,7 @@ def cubicdepressedsol(a,b,c,d):
       else:
         t=-(abs(t))**(1/3) 
       s=-delta2/t
-      print ('qcubic',t-s)
+      #print ('qcubic',t-s)
       return t-s,0,0  
     else:
       theta = (1/3)*arccos(-d/h)
@@ -187,6 +187,8 @@ class compactmodel:
     self.a0 = -1.0 #m/F
     self.b0 = 0#1.3e10 #m^5/F/coul^2
     self.c0 = 0 #m^9/F/coul^4
+    
+    self.cgsfe = 0
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     exec ("self."+name+' = '+'value'   )
@@ -351,6 +353,7 @@ class compactmodel:
       QMf   = self.QMFACTORCV*auxQMfact*(fieldnormalizationfactor)**(2.0/3.0)*(1/(self.q*nVtm))       
          
       #source side evaluation for charge  
+      print
       Vch = Vs
       if (self.NCFETMOD>0):
         #qs = UFCMchargemodel.unified_charge_model_nc(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
@@ -377,6 +380,7 @@ class compactmodel:
         a0 = self.a0
         b0 = self.b0
         c0 = self.c0
+        cgsfe = self.cgsfe
 
         Vg = Vg+log(self.nssshift)*(nss-1.0)*vt
         rc  = (2.0*Cins/(Weff**2.0*ech/Ach))
@@ -394,23 +398,45 @@ class compactmodel:
         #print ('d:',-(Vg_local_N-vth_N_Sub)/nss)
         qmlin = -(Vg_local_N-vth_N_Sub)/nss
         qmguess = 0 
-        if (Vov>60):
+        if (True):
+        
+          qgsfe = -cgsfe*(Vg-Vs)
           
-          i=0
-          while (i<50):
-            i = i+1
+          qmfe,qmfe1,qmfe3 = cubicdepressedsol(-b0/nss,-3.0*b0*qgsfe/nss,(-a0-1.0-3.0*qgsfe**2.0)/nss,-(Vg_local_N-vth_N_Sub)/nss-a0*qgsfe/nss-b0*qgsfe**3/nss )
+            
+          a = qmfe
+          b = 0
+          c = 1.0
+          d = 2.0
+          qmfe = 0.5*(a+b-((abs(a-b))**d+c)**(1.0/d))
+          #qmfe = 2.0*(1.0-sqrt(1.0+(log(1.0+exp(-qmfe*0.5)))**2.0)) 
+            
+          qm=qmfe
+          vfe = -(a0*(qm+qgsfe)+b0*(qm+qgsfe)**3.0+c0*(qm+qgsfe)**5.0 )
+          Vov         = (Vg_local_N-vfe-vth_N_Sub)*0.5/nss
+
+          if (Vov>60):
             qm      = -Vov*2.0*nss
-            vfe = -(a0*qm+b0*qm**3.0+c0*qm**5.0)
-            Vov         = (Vg_local_N-vfe-vth_N_Sub)*0.5/nss          
+          else:
+            qm      = exp(Vov)
+            qm      = 2.0*(1.0-sqrt(1.0+(log(1.0+qm))**2.0))   
+          
+          
+          qmguess = qm 
+          qmfe =  2.0*(1.0-sqrt(1.0+(log(1.0+exp((Vg_local_N-vth_N_Sub)*0.5/nss)))**2.0))                    
           qs0=qm
           qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
           x0      = qtrc/(exp(qtrc)-qtrc-1.0)
           x1      = qtrc*x0
           
           #####################################
-          vfe = -(a0*qm+b0*qm**3.0+c0*qm**5.0)
-          dvfe = -(a0+3.0*b0*qm**2.0+5.0*c0*qm**4.0)
-          ddvfe = -(6.0*b0*qm+20.0*c0*qm**3.0)
+          vfe = -(a0*(qm+qgsfe)+b0*(qm+qgsfe)**3.0+c0*(qm+qgsfe)**5.0 )
+          dvfe = -(a0+3.0*b0*(qm+qgsfe)**2.0+5.0*c0*(qm+qgsfe)**4.0)
+          ddvfe = -(6.0*b0*(qm+qgsfe)+20.0*c0*(qm+qgsfe)**3.0)
+          
+          qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
+          x0      = qtrc/(exp(qtrc)-qtrc-1.0)
+          x1      = qtrc*x0          
           
           f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
           f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+ dvfe
@@ -424,9 +450,13 @@ class compactmodel:
           ######################################
           
           #####################################
-          vfe = -(a0*qm+b0*qm**3.0+c0*qm**5.0)
-          dvfe = -(a0+3.0*b0*qm**2.0+5.0*c0*qm**4.0)
-          ddvfe = -(6.0*b0*qm+20.0*c0*qm**3.0)
+          vfe = -(a0*(qm+qgsfe)+b0*(qm+qgsfe)**3.0+c0*(qm+qgsfe)**5.0 )
+          dvfe = -(a0+3.0*b0*(qm+qgsfe)**2.0+5.0*c0*(qm+qgsfe)**4.0)
+          ddvfe = -(6.0*b0*(qm+qgsfe)+20.0*c0*(qm+qgsfe)**3.0)
+          
+          qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
+          x0      = qtrc/(exp(qtrc)-qtrc-1.0)
+          x1      = qtrc*x0          
           
           f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
           f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+ dvfe
@@ -440,9 +470,13 @@ class compactmodel:
           ######################################
           
           #####################################
-          vfe = -(a0*qm+b0*qm**3.0+c0*qm**5.0)
-          dvfe = -(a0+3.0*b0*qm**2.0+5.0*c0*qm**4.0)
-          ddvfe = -(6.0*b0*qm+20.0*c0*qm**3.0)
+          vfe = -(a0*(qm+qgsfe)+b0*(qm+qgsfe)**3.0+c0*(qm+qgsfe)**5.0 )
+          dvfe = -(a0+3.0*b0*(qm+qgsfe)**2.0+5.0*c0*(qm+qgsfe)**4.0)
+          ddvfe = -(6.0*b0*(qm+qgsfe)+20.0*c0*(qm+qgsfe)**3.0)
+          
+          qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
+          x0      = qtrc/(exp(qtrc)-qtrc-1.0)
+          x1      = qtrc*x0          
           
           f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
           f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+ dvfe
@@ -454,184 +488,12 @@ class compactmodel:
           delta3 = delta
           qs3=qm
           ######################################
-        else:
-          qm      = exp((Vg_local_N-vth_N_Sub)*0.5/nss)
-         
-          if(qm>1.0e-7):#original 1.0e-7
-            #
-            i=0
-            vfe=0
-            '''while (i<50):
-              i = i+1
-              Vov         = (Vg_local_N-vfe-vth_N_Sub)*0.5/nss
-              if (Vov>60):
-                qm      = -Vov*2.0*nss
-              else:
-                qm      = exp((Vg_local_N-vfe-vth_N_Sub)*0.5/nss)
-                
-                qm      = 2.0*(1.0-sqrt(1.0+(log(1.0+qm))**2.0))
-              print ('charge: ',qm)
-              vfe = a0*qm+b0*qm**3.0+c0*qm**5.0
-              print ('vfe: ',vfe  )
-              #print ((Vg_local_N-vfe-vth_N_Sub)*0.5/nss)'''
-           
-           
-            Vov         = (Vg_local_N-vfe-vth_N_Sub)*0.5/nss
-            if (Vov>60):
-              qm      = -Vov*2.0*nss
-            else:
-              qm      = exp((Vg_local_N-vfe-vth_N_Sub)*0.5/nss)
-              qm      = 2.0*(1.0-sqrt(1.0+(log(1.0+qm))**2.0)) 
-            
-            qmmos = qm
-            '''vfe = a0*qm+b0*qm**3.0+c0*qm**5.0  
-            while (i<50):
-              i = i+1
-              Vov         = (Vg_local_N-vfe-vth_N_Sub)*0.5/nss
-              qmold = qm
-              if (Vov>60):
-                qm      = -Vov*2.0*nss
-                qmnew = qm
-              else:
-                qm      = exp((Vg_local_N-vfe-vth_N_Sub)*0.5/nss)
-                qm      = 2.0*(1.0-sqrt(1.0+(log(1.0+qm))**2.0))
-                qmnew = qm
-                
-              deltaqm = qmnew - qmold'''
-            i=0   
-            df=0
-            while (i<3):
-              i = i+1
-              vfe = -(a0*qm+b0*qm**3.0+c0*qm**5.0 )
-              Vov         = (Vg_local_N-vfe-vth_N_Sub)*0.5/nss
-              qmaux      = exp((Vg_local_N-vfe-vth_N_Sub)*0.5/nss)
-              f =  qm   - 2.0*(1.0-sqrt(1.0+(log(1.0+qmaux))**2.0))
-              #df = 1 + 2.0*(-0.5*a0 - 1.5*b0*qm**2.0)*exp(Vov)*log(exp(Vov) + 1.0)**1.0/(nss*(exp(Vov) + 1.0)*sqrt(log(exp(Vov) + 1.0)**2.0 + 1.0))
-              df = 1 + 2.0*(0.5*a0 + 1.5*b0*qm**2.0)*exp(Vov)*log(exp(Vov) + 1.0)/(nss*(exp(Vov) + 1.0)*sqrt(log(exp(Vov) + 1.0)**2.0 + 1.0))
-
-              delta = -f/df               
-              qm = qm  +delta
-              #print ('delta guess: ',delta  )
-            
-            '''vfe = 0
-            Vov         = (Vg_local_N-vth_N_Sub)*0.5/nss
-            if qmfe>0:
-              Vov         = (Vg_local_N-vth_N_Sub)*0.5/nss
-            else:
-              Vov = -qmfe*0.5
-            if (Vov>60):
-              qm      = -Vov*2.0*nss
-            else:
-              qm      = exp(Vov)
-              qm      = 2.0*(1.0-sqrt(1.0+(log(1.0+qm))**2.0))     '''        
-            #qm = qmfe+1.0
-            
-            qmfe,qmfe1,qmfe3 = cubicdepressedsol(-b0/nss,0,(-a0-1.0)/nss,-(Vg_local_N-vth_N_Sub)/nss )
-            
-            a = qmfe
-            b = 0
-            c = 1
-            qmfe = 0.5*(a+b-sqrt((a-b)**2+c))
-            
-            qm=qmfe
-            vfe = -(a0*qm+b0*qm**3.0+c0*qm**5.0 )
-            Vov         = (Vg_local_N-vfe-vth_N_Sub)*0.5/nss
-            '''if qmfe>0:
-              Vov         = (Vg_local_N-vth_N_Sub)*0.5/nss
-            else:
-              Vov = -qmfe*0.5'''
-            if (Vov>60):
-              qm      = -Vov*2.0*nss
-            else:
-              qm      = exp(Vov)
-              qm      = 2.0*(1.0-sqrt(1.0+(log(1.0+qm))**2.0))   
-                          
-            deltaqm = f     
-            qmguess = qm                                                  
-            #qm      = 2.0*(1.0-sqrt(1.0+(log(1.0+qm))**2.0))                        
-            qs0=qm
-
-
-            #####################################
-            qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
-            x0      = qtrc/(exp(qtrc)-qtrc-1.0)
-            x1      = qtrc*x0
-                        
-            vfe = -(a0*qm+b0*qm**3.0+c0*qm**5.0)
-            dvfe = -(a0+3.0*b0*qm**2.0+5.0*c0*qm**4.0)
-            ddvfe = -(6.0*b0*qm+20.0*c0*qm**3.0)
-            
-            f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
-            f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+ dvfe
-            f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
-            delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
-            qm      = qm+delta
-            ######################################
-            vfe1 = vfe*vt
-            delta1 = delta
-            qs1=qm
-            ######################################
-            
-            #####################################
-            qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
-            x0      = qtrc/(exp(qtrc)-qtrc-1.0)
-            x1      = qtrc*x0
-                        
-            vfe = -(a0*qm+b0*qm**3.0+c0*qm**5.0)
-            dvfe = -(a0+3.0*b0*qm**2.0+5.0*c0*qm**4.0)
-            ddvfe = -(6.0*b0*qm+20.0*c0*qm**3.0)
-            
-            f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
-            f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+ dvfe
-            f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
-            delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
-            qm      = qm+delta
-            ######################################
-            vfe2 = vfe*vt
-            delta2 = delta
-            qs2=qm
-            ######################################
-            
-            #####################################
-            qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
-            x0      = qtrc/(exp(qtrc)-qtrc-1.0)
-            x1      = qtrc*x0
-                        
-            vfe = -(a0*qm+b0*qm**3.0+c0*qm**5.0)
-            dvfe = -(a0+3.0*b0*qm**2.0+5.0*c0*qm**4.0)
-            ddvfe = -(6.0*b0*qm+20.0*c0*qm**3.0)
-            
-            f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
-            f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+ dvfe
-            f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
-            delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
-            qm      = qm+delta
-            ######################################
-            vfe3 = vfe*vt
-            delta3 = delta
-            qs3=qm
-            ######################################          
-           
-            
-            
-          else:
-            qm      = -qm**2.0
-            qs0=qm
-            qs1=qm
-            qs2=qm
-            qs3=qm
-            vfe = a0*qm+b0*qm**3.0+c0*qm**5.0
-            vfe1 = vfe*vt    
-            vfe2 = vfe*vt  
-            vfe3 = vfe*vt   
-            delta3 = 0
-            delta2 = 0
-            delta1 = 0        
+          
         qs = qm
       else:
         qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
       #drain-source current model (normalized)
-      ids0,mu,vdsat,qd,qdsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth,SS,flagsweep)
+      '''ids0,mu,vdsat,qd,qdsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth,SS,flagsweep)
 
       #drain-source current in Ampere [C/s]
       idsfactor = (nVtm**2*self.Cins)/self.Lg
@@ -644,7 +506,7 @@ class compactmodel:
         idsfinal = idsfinal
       
       #iteration to solve drain-source current including source and drain resistances
-      count=0
+      count=0'''
       
       '''while (count<self.countRmodel):  
         Vch = Vs+Rsaux*idsfinal
@@ -658,7 +520,7 @@ class compactmodel:
         count+=1'''
       
       #source-drain sweep in case Vd<Vs
-      if flagsweep ==1:
+      '''if flagsweep ==1:
         qaux = qs
         qs = qd
         qd = qs
@@ -679,7 +541,8 @@ class compactmodel:
     #qs=-qs  
     #attach values of variables to return
     V_FE = 0
-    V_FE_delta = 0
+    V_FE_delta = 0'''
+    qs=-qs
     variablesvalues = []
     for var in self.returnvar:
       exec ('variablesvalues.append('+var+')' )
