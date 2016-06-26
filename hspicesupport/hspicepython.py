@@ -134,7 +134,7 @@ class hspicepython:
     simfile.close()   
     #hspice run file TODO: how to check simulation was aborted?
     os.system('hspice ' + self.simulationfolder +self.simfilename+'.sp -o ' + self.simulationfolder+self.simfilename)
-   
+    #print(allvaldc)
     #parse results
     self.hspicetotex('x','y',allvaldc)
    
@@ -198,19 +198,20 @@ class hspicepython:
     flagfirstread = 1 #use to save only once variable that is being sweeped for simulation, can be input voltage or time
     for line in outputfiletoread:
       line = line.replace("x1:", "") #this replaces all string x1: for empty, so only variable name is saved
-      #print line
       if (state==0):
         #stays in this state until stringstart is found
-        if (line.find(stringstart)==0):
+        if (line.find(stringstart)==0):#TODO: make this more robust this work only for hspice 2015, 0 for 2012
           state=1
+          
       elif (state==1):
+        #this states is to add variables names and first values
         stringinline = str.split(line)
         if len(stringinline)>0:
         
           if (is_number(stringinline[0])):
             if flagfirstread==1:
               namesaux = ['sweepvar']+namesaux
-
+            
             totalvariables= totalvariables + namesaux
               
             if (len(vol_curr_string)<(len(namesaux)+1+flagfirstread*-1)):
@@ -219,6 +220,7 @@ class hspicepython:
             if flagfirstread==0:
               vol_curr_string = vol_curr_string[1:]
             names_vol_curr = names_vol_curr + vol_curr_string
+            
             state=2
 
             count=0
@@ -239,10 +241,11 @@ class hspicepython:
             #this saves previous string so names can be saved
             vol_curr_string = namesaux
             namesaux = stringinline
+            
 
       elif (state==2):
-        #print line
-        if (line.find(stringend)==0) :
+        #this state keep adding values to the variables until end string is found then it goes back to state 0
+        if (line.find(stringend)==0) : #TODO: make this more robust this work only for hspice 2015, 0 for 2012
           flagfirstread = 0
 
           state=0
@@ -255,7 +258,8 @@ class hspicepython:
             addint = 1        
           for variable in namesaux:
             valuestoprint[variable].append(stringinline[count+addint])
-            count+=1              
+            count+=1    
+       
 
     #write all data to text file   
     hspicefileresult = open(self.simulationfolder+self.simresultfilename, 'w')        

@@ -120,8 +120,9 @@ class plotgeneral:
       header = str.split(target.readline())
       if len(header)>0:
         flagprint = 1
-        xindex =  header.index(xstring)
-        yindex =  header.index(ystring)
+        print(xstring.lower())
+        xindex =  header.index(xstring.lower())
+        yindex =  header.index(ystring.lower())
       
         datalist = loadtxt(pathandfile,skiprows = 1)
 
