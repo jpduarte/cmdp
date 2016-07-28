@@ -8,7 +8,7 @@ import mobilitymodels
 import UFCMidsf1update
 #from algopy import UTPM
 
-from numpy import sqrt, exp, log, cosh, pi, tan, sin, cos, arccos
+from numpy import sqrt, exp, log, cosh, pi, tan, sin, cos, arccos, sign
 
 def cubicdepressedsol(a,b,c,d):
   #a*x**3+b*x**2+c*x+d=0
@@ -402,15 +402,16 @@ class compactmodel:
         
           qgsfe = -cgsfe*(Vg-Vs)
           
-          qmfe,qmfe1,qmfe3 = cubicdepressedsol(-b0/nss,-3.0*b0*qgsfe/nss,(-a0-1.0-3.0*qgsfe**2.0)/nss,-(Vg_local_N-vth_N_Sub)/nss-a0*qgsfe/nss-b0*qgsfe**3/nss )
-            
+          qmfe,qmfe1,qmfe3 = cubicdepressedsol(-b0/nss,0,(-a0-1.0)/nss,-(Vg_local_N-vth_N_Sub)/nss )
+          qmfeaux = qmfe          
+          qmfe=qmfe1  
           a = qmfe
           b = 0
           c = 1.0
           d = 2.0
-          qmfe = 0.5*(a+b-((abs(a-b))**d+c)**(1.0/d))
-          #qmfe = 2.0*(1.0-sqrt(1.0+(log(1.0+exp(-qmfe*0.5)))**2.0)) 
-            
+          #qmfe = 0.5*(a+b-((abs(a-b))**d+c)**(1.0/d))
+          qmfe = 2.0*(1.0-sqrt(1.0+(log(1.0+exp(-qmfe*0.5)))**2.0)) 
+          deltamax = 10.0  
           qm=qmfe
           vfe = -(a0*(qm+qgsfe)+b0*(qm+qgsfe)**3.0+c0*(qm+qgsfe)**5.0 )
           Vov         = (Vg_local_N-vfe-vth_N_Sub)*0.5/nss
@@ -442,6 +443,8 @@ class compactmodel:
           f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+ dvfe
           f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
           delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
+          if (abs(delta)>deltamax):
+            delta = sign(delta)*5.0
           qm      = qm+delta
           ######################################
           vfe1 = vfe*vt
@@ -462,6 +465,8 @@ class compactmodel:
           f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+ dvfe
           f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
           delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
+          if (abs(delta)>deltamax):
+            delta = sign(delta)*5.0          
           qm      = qm+delta
           ######################################
           vfe2 = vfe*vt
@@ -482,6 +487,8 @@ class compactmodel:
           f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+ dvfe
           f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
           delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
+          if (abs(delta)>deltamax):
+            delta = sign(delta)*5.0          
           qm      = qm+delta
           ######################################
           vfe3 = vfe*vt
@@ -493,6 +500,7 @@ class compactmodel:
       else:
         qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
       #drain-source current model (normalized)
+      vfe = -(a0*(qm+qgsfe)+b0*(qm+qgsfe)**3.0+c0*(qm+qgsfe)**5.0 ) 
       '''ids0,mu,vdsat,qd,qdsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth,SS,flagsweep)
 
       #drain-source current in Ampere [C/s]
