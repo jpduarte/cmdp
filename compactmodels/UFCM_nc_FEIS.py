@@ -350,9 +350,9 @@ class compactmodel:
         Vov         = (Vg_local_N-vth_N_Sub)*0.5/nss
         
         
-        ########################################################Initial Guess: Begin###############################################################  
+        ########################################################Initial Guess: Begin##################################################
         qgsfe = -cgsfe*(Vg-Vs)
-        auxqm = alpha1_P/(2.0*alpha11_P*(vt*Cins/Weff)**2);
+        auxqm = alpha1_P/(2.0*alpha11_P*(vt*Cins/Weff)**2)
         qm = -sqrt(-auxqm)
         qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
         x0      = qtrc/(exp(qtrc)-qtrc-1.0)
@@ -385,23 +385,25 @@ class compactmodel:
           qmfequesssub = 10000
         qmfeguess = qmfeguess*qmfequesssub/(qmfequesssub+qmfeguess)
         qmfeguessprint = qmfeguess
-        ############################################################Initial Guess: End########################################################        
+        #calculating the point of vfe max
+        auxqm = alpha1_P/(2.0*alpha11_P*(vt*Cins/Weff)**2)
+        qmvfemax = -sqrt(-auxqm/3.0)
+        vfemax = -(a0*(qmvfemax+qgsfe)+b0*(qmvfemax+qgsfe)**3.0)
+        qm = qmvfemax
+        Vgn=(vth_N_SI-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfemax)*vt
+        print (qmvfemax,vfemax*vt,Vgn)
+        ############################################################Initial Guess: End############################################    
         
         #qmfe,qmfe1,qmfe3 = cubicdepressedsol(-b0/nss,0,(-a0-1.0)/nss,-(Vg_local_N-vth_N_Sub)/nss )
         #print ('d:',-(Vg_local_N-vth_N_Sub)/nss)
         #qmlin = -(Vg_local_N-vth_N_Sub)/nss
         if (len(iterationguess)>0):
-         print ("first")
-         print (Vg)
-         print (iterationguess)
          qmfeguessaux=iterationguess[self.returnvar.index('qs')]
          if not (isnan(qmfeguessaux)):
           qm = -qmfeguessaux
          else:
           qm = -qmfeguess
         else:
-         print ("NAN")
-         print ("second")
          qm = -qmfeguess  
         #qmguess = 0 
         if (True):
@@ -431,9 +433,9 @@ class compactmodel:
              
              #
              qm      = qm+delta
-             if (isnan(qm)):
+             if (qm>0):
               qm = -qmfeguess
-          print (f0,f1,f2,delta,qm)
+          #print (f0,f1,f2,delta,qm)
           ######################################
           vfe = -(a0*(qm+qgsfe)+b0*(qm+qgsfe)**3.0+c0*(qm+qgsfe)**5.0 )*vt
         qs = qm
@@ -444,7 +446,7 @@ class compactmodel:
       #print (vfetran,vth_N_Sub*vt)
       #qmfeguess = qmfequesssub
       #drain-source current model (normalized)
-      vfe = -(a0*(qm+qgsfe)+b0*(qm+qgsfe)**3.0+c0*(qm+qgsfe)**5.0 ) 
+      vfe = -(a0*(qm+qgsfe)+b0*(qm+qgsfe)**3.0+c0*(qm+qgsfe)**5.0 )
       '''ids0,mu,vdsat,qd,qdsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth,SS,flagsweep)
 
       #drain-source current in Ampere [C/s]
