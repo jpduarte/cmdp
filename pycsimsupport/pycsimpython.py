@@ -98,6 +98,7 @@ class pycsimpython:
     i=0
     column=len(allvaldc)
     rown=len(allvaldc[0])
+    iterationguess = []
     while (i<rown):
       stringtowrite = ''
       j=0
@@ -110,7 +111,9 @@ class pycsimpython:
           stringtoexec = 'device.'+self.deviceparameter[j-len(self.nodes)]+ '='+str(allvaldc[j][i])
           exec (stringtoexec)
         j+=1  
+      bias.append(iterationguess)
       valuesvar,namesvar = device.analog(*tuple(bias))#model evaluation
+      iterationguess = valuesvar
       resultsimstring = ' '.join(map(str, valuesvar)) 
       fileresult.write(stringtowrite+resultsimstring+'\n') 
       i+=1 

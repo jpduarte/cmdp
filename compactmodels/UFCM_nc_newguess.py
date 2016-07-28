@@ -8,7 +8,7 @@ import mobilitymodels
 import UFCMidsf1update
 #from algopy import UTPM
 
-from numpy import sqrt, exp, log, cosh, pi, tan, sin, cos, arccos, sign
+from numpy import sqrt, exp, log, cosh, pi, tan, sin, cos, arccos, sign, isnan
 
 def cubicdepressedsol(a,b,c,d):
   #a*x**3+b*x**2+c*x+d=0
@@ -192,56 +192,6 @@ class compactmodel:
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     exec ("self."+name+' = '+'value'   )
-  '''def analog(self,*args):
-    Vdi,Vgi,Vsi,Vbi = args
-    
-    #geometrie Unified FinFET model parameter calculations, TODO: add more geometries
-    if (self.GEOMOD==0): #double-gate, rectangular
-      self.Cins   = (2.0*self.HFIN)*self.eins/self.tins
-      self.Ach    = self.TFIN*self.HFIN
-      self.Weff   = 2.0*self.HFIN
-    if (self.GEOMOD==1): #triple-gate, rectangular
-      self.Cins   = (2.0*self.HFIN+self.TFIN)*self.eins/self.tins
-      self.Ach    = self.TFIN*self.HFIN
-      self.Weff   = (2.0*self.HFIN+self.TFIN)    
-    if (self.GEOMOD==2): #triple-gate, trapezoidal
-      self.Weff   = sqrt((self.TFIN_TOP_L-self.TFIN_BASE_L)**2+self.HFIN**2)+sqrt((self.TFIN_TOP_R-self.TFIN_BASE_R)**2+self.HFIN**2)+self.TFIN_TOP_R+self.TFIN_TOP_L
-      self.Cins   = self.Weff*self.eins/self.tins
-      self.Ach    = self.HFIN*(self.TFIN_TOP_R+self.TFIN_TOP_L + self.TFIN_BASE_L+self.TFIN_BASE_R)/2
-    
-    Qg = 0
-    dQg = 0
-    count=0
-    V_FE = 0
-    while count<5:
-      count+=1
-      
-      #save previous values
-      V_FE_old = V_FE
-      Qg_old = Qg;
-      
-      #FE equations
-      Q = Qg/(self.Lg*self.NFIN*self.Weff)
-      E_FE=2.0*self.alpha1_P*Q+4.0*self.alpha11_P*Q**3.0+6.0*self.alpha111_P*Q**5.0+8.0*self.alpha1111_P*Q**7.0;    #Electric field across the ferroelectric
-      V_FE=E_FE*self.t_FE;
-
-      #wrap to include FE voltage drop
-      Vgiaux = Vgi-V_FE
-      Ids,Qg,dQg_dVg = self.analog2(Vdi,Vgiaux,Vsi,Vbi)#)
-      
-      #derivate constructions
-      #Idsv,Qgv,dQg_dVg_v = self.analog2(Vdi,UTPM.init_jacobian(Vgiaux),Vsi,Vbi)
-      #dQg_dVgp = UTPM.extract_jacobian(Qgv)
-      dE_FE_dQbp = 2.0*self.alpha1_P+3.0*4.0*self.alpha11_P*Q**2.0+5.0*6.0*self.alpha111_P*Q**4.0+7.0*8.0*self.alpha1111_P*Q**6.0; 
-      dVgp_dQbp = - (self.t_FE*dE_FE_dQbp*1/(self.Lg*self.NFIN*self.Weff))
-      #print dQg_dVgp[0], dQg_dVg_a
-      #Newton Method
-      f = Qg_old - Qg
-      df = 1-dQg_dVg*dVgp_dQbp
-      Qg = Qg_old-f/df
-      V_FE_delta = V_FE-V_FE_old
-      
-    return  [Ids,Qg,V_FE,V_FE_delta],self.returnvar'''
     
   def analog(self,*args):
     """this function returns the drain current or other variables for given bias"""  
@@ -278,7 +228,7 @@ class compactmodel:
     ###################################################
     ##########Bias dependent calculations##############
     ###################################################
-    Vdi,Vgi,Vsi,Vbi = args
+    Vdi,Vgi,Vsi,Vbi,iterationguess = args
     Vgi=Vgi
     count_FE=0
     if True:#while (count_FE<100):
@@ -434,16 +384,30 @@ class compactmodel:
         if qmfequesssub>1e3:
           qmfequesssub = 10000
         qmfeguess = qmfeguess*qmfequesssub/(qmfequesssub+qmfeguess)
+        qmfeguessprint = qmfeguess
         ############################################################Initial Guess: End########################################################        
         
         #qmfe,qmfe1,qmfe3 = cubicdepressedsol(-b0/nss,0,(-a0-1.0)/nss,-(Vg_local_N-vth_N_Sub)/nss )
         #print ('d:',-(Vg_local_N-vth_N_Sub)/nss)
         #qmlin = -(Vg_local_N-vth_N_Sub)/nss
+        if (len(iterationguess)>0):
+         print ("first")
+         print (Vg)
+         print (iterationguess)
+         qmfeguessaux=iterationguess[self.returnvar.index('qs')]
+         if not (isnan(qmfeguessaux)):
+          qm = -qmfeguessaux
+         else:
+          qm = -qmfeguess
+        else:
+         print ("NAN")
+         print ("second")
+         qm = -qmfeguess  
         #qmguess = 0 
         if (True):
         
-         
-          qm = -qmfeguess  
+          #qm = -qmfeguess 
+           
               
           i=1  
           while (i<10):
@@ -464,87 +428,12 @@ class compactmodel:
              f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+ dvfe
              f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
              delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
-             if abs(delta)>5:
-              #print (delta)
-              delta = sign(delta)*5.0
-              while (qm+delta)>0:
-                #delta = -qm/2.0
-                delta = sign(delta)*5.0
+             
+             #
              qm      = qm+delta
-          fwhile = abs(qm- 2.0*(1.0-sqrt(1.0+(log(1.0+exp((Vg_local_N+(a0*qm+b0*qm**3.0+c0*qm**5.0)-vth_N_Sub)*0.5/nss )))**2.0)) )
-
-
-          '''qmguess = qm 
-          qmfe =  2.0*(1.0-sqrt(1.0+(log(1.0+exp((Vg_local_N-vth_N_Sub)*0.5/nss)))**2.0))                    
-          qs0=qm
-          qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
-          x0      = qtrc/(exp(qtrc)-qtrc-1.0)
-          x1      = qtrc*x0
-          
-          #####################################
-          vfe = -(a0*(qm+qgsfe)+b0*(qm+qgsfe)**3.0+c0*(qm+qgsfe)**5.0 )
-          dvfe = -(a0+3.0*b0*(qm+qgsfe)**2.0+5.0*c0*(qm+qgsfe)**4.0)
-          ddvfe = -(6.0*b0*(qm+qgsfe)+20.0*c0*(qm+qgsfe)**3.0)
-          
-          qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
-          x0      = qtrc/(exp(qtrc)-qtrc-1.0)
-          x1      = qtrc*x0          
-          
-          f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
-          f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+ dvfe
-          f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
-          delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
-          if (abs(delta)>deltamax):
-            delta = sign(delta)*5.0
-          qm      = qm+delta
-          ######################################
-          vfe1 = vfe*vt
-          delta1 = delta
-          qs1=qm
-          ######################################
-          
-          #####################################
-          vfe = -(a0*(qm+qgsfe)+b0*(qm+qgsfe)**3.0+c0*(qm+qgsfe)**5.0 )
-          dvfe = -(a0+3.0*b0*(qm+qgsfe)**2.0+5.0*c0*(qm+qgsfe)**4.0)
-          ddvfe = -(6.0*b0*(qm+qgsfe)+20.0*c0*(qm+qgsfe)**3.0)
-          
-          qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
-          x0      = qtrc/(exp(qtrc)-qtrc-1.0)
-          x1      = qtrc*x0          
-          
-          f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
-          f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+ dvfe
-          f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
-          delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
-          if (abs(delta)>deltamax):
-            delta = sign(delta)*5.0          
-          qm      = qm+delta
-          ######################################
-          vfe2 = vfe*vt
-          delta2 = delta
-          qs2=qm
-          ######################################
-          
-          #####################################
-          vfe = -(a0*(qm+qgsfe)+b0*(qm+qgsfe)**3.0+c0*(qm+qgsfe)**5.0 )
-          dvfe = -(a0+3.0*b0*(qm+qgsfe)**2.0+5.0*c0*(qm+qgsfe)**4.0)
-          ddvfe = -(6.0*b0*(qm+qgsfe)+20.0*c0*(qm+qgsfe)**3.0)
-          
-          qtrc    = (qm*alpha_MI**(-1.0)+qdep)*rc
-          x0      = qtrc/(exp(qtrc)-qtrc-1.0)
-          x1      = qtrc*x0          
-          
-          f0      = F-qm+log(-qm)*nss+log(x1)+QMF*((-(qdep+qm))**(2.0/3.0))+vfe
-          f1      = -1.0+qm**(-1.0)*nss+(2.0*qtrc**(-1.0)-x0-1.0)*rc-(2.0/3.0)*QMF*((-(qdep+qm))**(-1.0/3.0))+ dvfe
-          f2      = -(qm**2.0)**(-1.0)*nss-(2.0/9.0)*QMF*((-(qdep+qm))**(-4/3.0))+ddvfe
-          delta = -(f0*f1**(-1.0))*(1.0+(f0*f2)*(2.0*f1**2.0)**(-1.0))
-          if (abs(delta)>deltamax):
-            delta = sign(delta)*5.0          
-          qm      = qm+delta
-          ######################################
-          vfe3 = vfe*vt
-          delta3 = delta
-          qs3=qm'''
+             if (isnan(qm)):
+              qm = -qmfeguess
+          print (f0,f1,f2,delta,qm)
           ######################################
           vfe = -(a0*(qm+qgsfe)+b0*(qm+qgsfe)**3.0+c0*(qm+qgsfe)**5.0 )*vt
         qs = qm
@@ -552,7 +441,7 @@ class compactmodel:
         qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
       dvfedvg = (a0*(qm+qgsfe)+3.0*b0*(qm+qgsfe)**3.0)/(1.0+a0*(qm+qgsfe))
       vfetran = (log(-1.0/a0)+vth_N_Sub+1.0)*vt
-      print (vfetran,vth_N_Sub*vt)
+      #print (vfetran,vth_N_Sub*vt)
       #qmfeguess = qmfequesssub
       #drain-source current model (normalized)
       vfe = -(a0*(qm+qgsfe)+b0*(qm+qgsfe)**3.0+c0*(qm+qgsfe)**5.0 ) 
@@ -612,5 +501,6 @@ class compactmodel:
     #for var in self.returnvar:
     #  self.variablesvalues[var] =   
     #print variablesvalues
+    
     return  variablesvalues, self.returnvar#Ids,Qg,dQg_dVg
 
