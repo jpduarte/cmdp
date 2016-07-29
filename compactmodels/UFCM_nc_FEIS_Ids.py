@@ -190,6 +190,7 @@ class compactmodel:
     self.c0 = 0 #m^9/F/coul^4
     
     self.cgsfe = 0
+    self.gauss_n = 30
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     exec ("self."+name+' = '+'value'   )
@@ -203,6 +204,7 @@ class compactmodel:
     #temperature dependent vt, and ni
     self.vt      = self.k*self.T/self.q #V 
     self.ni      = 2.651e+16#sqrt(self.Nc*self.Nv)*exp(-self.Eg/(2*self.vt)) #1/m^3
+    gauss_n = self.gauss_n
     
     #geometrie Unified FinFET model parameter calculations, TODO: add more geometries
     if (self.GEOMOD==0): #double-gate, rectangular
@@ -304,13 +306,29 @@ class compactmodel:
       QMf   = self.QMFACTORCV*auxQMfact*(fieldnormalizationfactor)**(2.0/3.0)*(1/(self.q*nVtm))       
          
       #source side evaluation for charge  
+      [x,w]=p_roots(gauss_n)
+      qmaux = []
 
-      Vch = Vs
-      qs,vfe,qmguess = UFCMchargemodel.unified_charge_model_nc2(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS,Vs,iterationguess)
-      #print (vfetran,vth_N_Sub*vt)
-      #qmfeguess = qmfequesssub
-      #drain-source current model (normalized)
+      j=0
+      while (j<(gauss_n)): 
+        if (len(iterationguess)<1):
+          guess = float('nan')
+        else:
+          guess = iterationguess[j]      
+        Vch = (Vd-Vs)*(x[j]+1.0)/2.0+Vs
+        qs,vfe,qmguess = UFCMchargemodel.unified_charge_model_nc2(self,Vg,Vch,nVtm,PHIG,QMf,SS,Vs,guess)
+        qmaux.append(qs)
+        exec ('q'+str(j)+'=qs' )
+        j=j+1
+        
+      ids0 = 0
+      j=0
+      #print (len(qmaux))
+      while (j<(gauss_n)): 
+        ids0=ids0-w[j]*qmaux[j] 
+        j=j+1    
       
+      ids0 = 0.5*(Vd-Vs)*ids0*self.Cins*nVtm/self.Lg
       '''ids0,mu,vdsat,qd,qdsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth,SS,flagsweep)
 
       #drain-source current in Ampere [C/s]
@@ -360,5 +378,5 @@ class compactmodel:
     for var in self.returnvar:
       exec ('variablesvalues.append('+var+')' )
     
-    return  variablesvalues, self.returnvar
+    return  variablesvalues, self.returnvar,qmaux
 

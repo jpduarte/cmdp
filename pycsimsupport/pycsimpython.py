@@ -112,8 +112,8 @@ class pycsimpython:
           exec (stringtoexec)
         j+=1  
       bias.append(iterationguess)
-      valuesvar,namesvar = device.analog(*tuple(bias))#model evaluation
-      iterationguess = valuesvar
+      valuesvar,namesvar,iterationguess = device.analog(*tuple(bias))#model evaluation
+      #iterationguess = valuesvar
       resultsimstring = ' '.join(map(str, valuesvar)) 
       fileresult.write(stringtowrite+resultsimstring+'\n') 
       i+=1 
