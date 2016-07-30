@@ -206,6 +206,7 @@ class compactmodel:
     self.ni      = 2.651e+16#sqrt(self.Nc*self.Nv)*exp(-self.Eg/(2*self.vt)) #1/m^3
     gauss_n = self.gauss_n
     
+    
     #geometrie Unified FinFET model parameter calculations, TODO: add more geometries
     if (self.GEOMOD==0): #double-gate, rectangular
       self.Cins   = (2.0*self.HFIN)*self.eins/self.tins
@@ -228,6 +229,25 @@ class compactmodel:
       flagdevtype = 1.0
       PHIG = self.PHIG
 
+    q = self.q
+    k = self.k
+    T = self.T
+    eo = self.eo
+    eins = self.eins
+    ech = self.ech
+    Eg = self.Eg
+    Nc = self.Nc
+    Nv = self.Nv
+    ni = self.ni
+    phi_substrate = self.phi_substrate
+    alpha_MI = self.alpha_MI
+    Cins = self.Cins
+    Ach = self.Ach
+    Weff = self.Weff
+    Nch = self.Nch
+    IDSMOD = self.IDSMOD
+    DEVTYPE =self.DEVTYPE
+    Lg = self.Lg
     ###################################################
     ##########Bias dependent calculations##############
     ###################################################
@@ -325,10 +345,15 @@ class compactmodel:
       j=0
       #print (len(qmaux))
       while (j<(gauss_n)): 
-        ids0=ids0-w[j]*qmaux[j] 
+        qm = qmaux[j]
+        Ft = -((qm+(-q*Nch*Ach)/(self.vt*Cins))*Cins*self.vt/( Weff * ech)) #1e-2 is to transform it to V/cm
+        t = (Ft*Ach/Weff+self.vt*(1.0-exp((Ft/self.vt)*Ach/Weff)))/(Ft*(1.0-exp((Ft/self.vt)*Ach/Weff))) #1e3 to transfor to um
+        c = -((qm)*Cins*self.vt/( Weff * q*(t))) #1e-6 to transform it to cm^-3
+        mulow2 = mobilitymodels.mobility(self,DEVTYPE,Ft*1e-2,0,Nch*1e-6,T,t*1e3,c*1e-6,Nch*1e-6/(Weff*1e2))      
+        ids0=ids0-w[j]*qmaux[j]*mulow2
         j=j+1    
       
-      ids0 = 0.5*(Vd-Vs)*ids0*self.Cins*nVtm/self.Lg
+      ids0 = 0.5*(Vd-Vs)*ids0*self.Cins*nVtm/self.Lg/Weff/1e6
       '''ids0,mu,vdsat,qd,qdsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth,SS,flagsweep)
 
       #drain-source current in Ampere [C/s]

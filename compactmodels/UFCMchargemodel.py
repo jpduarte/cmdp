@@ -219,7 +219,7 @@ def unified_charge_model_nc2(self,Vg,Vch,vt,phi_gate,QMF,nss,Vs,qguess_iteration
         Coxn2 = -Coxnaux*Coxn**2
         
         #print (a0,b0)
-        qmfequesssub = exp(Vg_local_N-vth_N_Sub)
+        qmfequesssub = exp((Vg_local_N-vth_N_Sub)/nss)
         vfes = -(a0*(-qmfequesssub+qgsfe) )   
         qmfeguess = -qm + Coxn*(Vg/vt-Vgn/vt) #+ Coxn2*(Vg/vt-Vgn/vt)**2.0/2.0 #Coxn*(Vg/vt-vthnfe)
         mtfe = 1.0
@@ -249,7 +249,7 @@ def unified_charge_model_nc2(self,Vg,Vch,vt,phi_gate,QMF,nss,Vs,qguess_iteration
         ###########################################3  
         qmfequesssub = qmfequesssub*exp(-vfes)
         vfes = -(a0*(-qmfequesssub+qgsfe) ) 
-        qmfequesssub = exp(Vg_local_N-vth_N_Sub)*exp(-vfes)
+        qmfequesssub = exp((Vg_local_N-vth_N_Sub)/nss)*exp(-vfes)
         if qmfequesssub>1e3:
           qmfequesssub = 10000
         qmfeguess = qmfeguess*qmfequesssub/(qmfequesssub+qmfeguess)
