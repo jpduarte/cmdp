@@ -203,7 +203,8 @@ def unified_charge_model_nc2(self,Vg,Vch,vt,phi_gate,QMF,nss,Vs,qguess_iteration
         
         
         ########################################################Initial Guess: Begin##################################################
-        qgsfe = -cgsfe*(Vg-Vs)
+        qgsfe = -cgsfe*(Vg-Vch)
+        #calculation of qm intersection for vfe=0=> qm=-sqrt(-a0/b0)
         auxqm = alpha1_P/(2.0*alpha11_P*(vt*Cins/Weff)**2)
         qm = -sqrt(-auxqm)
         qminter = -sqrt(-auxqm)
@@ -229,6 +230,7 @@ def unified_charge_model_nc2(self,Vg,Vch,vt,phi_gate,QMF,nss,Vs,qguess_iteration
         d = 2.0
         qmfeguess = a+b-0.5*(a+b-sqrt((a-b)**2+c))  
         ################calculating the point of vfe max
+        #TODO: incorporate changes due parasitic cap
         auxqm = alpha1_P/(2.0*alpha11_P*(vt*Cins/Weff)**2)
         qmvfemax = -sqrt(-auxqm/3.0)
         vfemax = -(a0*(qmvfemax+qgsfe)+b0*(qmvfemax+qgsfe)**3.0)
@@ -265,7 +267,7 @@ def unified_charge_model_nc2(self,Vg,Vch,vt,phi_gate,QMF,nss,Vs,qguess_iteration
          qm = qguess_iteration
         else:
          qm = -qmfeguess
- 
+        
         #qmguess = 0 
         if (True):
           i=1  

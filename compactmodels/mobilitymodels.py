@@ -101,6 +101,7 @@ def mobility(self,DEVTYPE,Ft,Na,Nd,T,t,carrier,Ndepl):
     muc2d = muc2dinv#/erf((t+t1)/tcoulomb)
     
     muc = muc2d #fFt*muc3d+(1-fFt)*muc2d TODO: check this effect
+    #print (carrier)
     muinv+= 1.0/muc    
 
   #########################################################################################

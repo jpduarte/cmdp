@@ -305,60 +305,20 @@ class compactmodel:
          
       #source side evaluation for charge  
 
+      if (len(iterationguess)<1):
+        guess = float('nan')
+      else:
+        guess = iterationguess[0] 
       Vch = Vs
-      qs,vfe,qmguess = UFCMchargemodel.unified_charge_model_nc2(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS,Vs,iterationguess)
+      qs,vfe,qmguess = UFCMchargemodel.unified_charge_model_nc2(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS,Vs,guess)
       #print (vfetran,vth_N_Sub*vt)
       #qmfeguess = qmfequesssub
       #drain-source current model (normalized)
       
-      '''ids0,mu,vdsat,qd,qdsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd,Vs,Vg,QMf,deltaVth,SS,flagsweep)
-
-      #drain-source current in Ampere [C/s]
-      idsfactor = (nVtm**2*self.Cins)/self.Lg
-      idsfinal = ids0*idsfactor
-      
-      #initial guess for drain-source current with source/drain resistances
-      if ((Vd-Vs)**2>1e-20):
-        idsfinal = idsfinal*(Vd-Vs)/((Vd-Vs)+idsfinal*(Rdaux+Rsaux))
-      else:
-        idsfinal = idsfinal
-      
-      #iteration to solve drain-source current including source and drain resistances
-      count=0'''
-      
-      '''while (count<self.countRmodel):  
-        Vch = Vs+Rsaux*idsfinal
-        qs = UFCMchargemodel.unified_charge_model(self,Vg-deltaVth,Vch,nVtm,PHIG,QMf,SS)
-        ids0,mu,vdsat,qd,qdsat = UFCMdraincurrentmodel.unified_normilized_ids(self,qs,nVtm,PHIG,Vd-Rdaux*idsfinal,Vs+Rsaux*idsfinal,Vg,QMf,deltaVth,SS,flagsweep)
-        
-        #Newton iteration update    
-        f0 = idsfinal-ids0*idsfactor
-        f1 = UFCMidsf1update.f1(self,qs,qd,nVtm,PHIG,Rsaux,Rdaux)
-        idsfinal = idsfinal-f0/f1
-        count+=1'''
-      
-      #source-drain sweep in case Vd<Vs
-      '''if flagsweep ==1:
-        qaux = qs
-        qs = qd
-        qd = qs
-        idsfinal=-idsfinal
-      
-      #total current counting number of fins NFIN  
-      vedrain = -idsfinal/(qd*self.vt*self.Cins)
-      vesource = -idsfinal/(qs*self.vt*self.Cins)
-      Ids = flagdevtype*idsfinal*self.NFIN
-      Idnorm = Ids/self.Weff*1e-6
-      #gate charge, TODO: add source/drain terminal charges 
-      Qg = -((qs+qd)*0.5-(qs-qd)**2/(6*(-2*(qs+qd)+1)))*self.Cins*nVtm*self.Lg*self.NFIN*flagdevtype
-      
-      dqd = -1/(1.0-1.0/qd)/self.vt
-      dqs = -1/(1.0-1.0/qs)/self.vt
-      dQg_dVg =  -((dqs+dqd)*0.5)*self.Cins*nVtm*self.Lg*self.NFIN*flagdevtype'''
     qs=-qs
     variablesvalues = []
     for var in self.returnvar:
       exec ('variablesvalues.append('+var+')' )
     
-    return  variablesvalues, self.returnvar
+    return  variablesvalues, self.returnvar,[-qs]
 
