@@ -30,10 +30,13 @@ class hspicepython:
     self.deviceparameter = ['L']#sim1.updateparameter('deviceparameter',['L'])#device parameters defined to sweep in simulation
     self.deviceparametervalue = [[1000e-9]]#sim1.updateparameter('deviceparametervalue',[[1000e-9]])#device parameter values for simulation
     self.vartosave = ['Ids']#sim1.updateparameter('vartosave',['Ids','qs']) #add variables to save   
+    self.abstol = '1e-6' #Sets the absolute error tolerance for branch currents in DC and transient analysis.
+    self.reltol = '1e-6' #Sets the relative error tolerance for voltages from iteration to iteration
+    self.absv = '1e-6' #Sets the absolute minimum voltage for DC and transient analysis.
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     exec "self."+name+' = '+'value'    
-  def runsim(self):
+  def runsim(self,flagrun=1):
     #check if simulation path exist, if not, it create the folder
     if not os.path.exists(self.simulationfolder):
       os.makedirs(self.simulationfolder)
@@ -42,7 +45,8 @@ class hspicepython:
     simfile.write('*script to generate hspice simulation using cmdp, Juan Duarte \n')
     simfile.write('*Date: '+ time.strftime("%m/%d/%Y")+ ', time: ' + time.strftime("%H:%M:%S") + '\n\n')
     #TODO: do not hard code the following 3 lines, use them as parameters?
-    simfile.write('.option abstol=1e-6 reltol=1e-6 post ingold \n')
+    simfile.write('.option abstol='+self.abstol +' reltol=' +self.reltol +' post ingold \n')
+    simfile.write('.option ABSV='+self.absv + ' \n')
     simfile.write('.option measform=1 \n')
     simfile.write('.temp 27 \n')
     simfile.write('\n')
@@ -79,8 +83,15 @@ class hspicepython:
         stringinline = str.split(line)
         self.devicetype=stringinline[1]
     modelcardfile.close()    
-        
-    stringdevice = stringdevice + ' '+self.devicetype+ ' '+ self.deviceparameter[0]+' = \''+self.deviceparameter[0]+'_value\''+'\n'
+    
+    #add name of device like nmos1 based on modelcard
+    stringdevice = stringdevice + ' '+self.devicetype
+    #add all the parameters to be sweeped
+    parameterstringaux = ''
+    for parameteraux in self.deviceparameter:    
+      parameterstringaux = parameterstringaux + ' '+ parameteraux+' = \''+parameteraux+'_value\''
+    #put all together, ex: X1 Vd Vg Vs Vb nmos1 L = 'L_value'
+    stringdevice = stringdevice + parameterstringaux+'\n'  
     simfile.write(stringdevice)
     simfile.write('\n')
         
@@ -133,10 +144,12 @@ class hspicepython:
     
     simfile.close()   
     #hspice run file TODO: how to check simulation was aborted?
-    os.system('hspice ' + self.simulationfolder +self.simfilename+'.sp -o ' + self.simulationfolder+self.simfilename)
+    if (flagrun==1):
+      os.system('hspice ' + self.simulationfolder +self.simfilename+'.sp -o ' + self.simulationfolder+self.simfilename)
     #print(allvaldc)
     #parse results
-    self.hspicetotex('x','y',allvaldc)
+    #self.hspicetotex('x','y',allvaldc)
+    self.allvaldc = allvaldc
    
     '''#parse results
     outputfiletoread = open(self.simulationfolder+self.simfilename+'.lis', 'r') 
@@ -186,7 +199,8 @@ class hspicepython:
           i+=1'''
           
           
-  def hspicetotex(self,stringstart,stringend,allvaldc):
+  def hspicetotex(self,stringstart,stringend):#,allvaldc):
+    allvaldc = self.allvaldc 
     outputfiletoread = open(self.simulationfolder+self.simfilename+'.lis', 'r') 
     state=0
     #this take data from .lis file and save information in python dictionaries
