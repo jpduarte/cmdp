@@ -321,7 +321,6 @@ class hspicepython:
     flagfirstread = 1 #use to save only once variable that is being sweeped for simulation, can be input voltage or time
     for line in outputfiletoread:
       line = line.replace("x1:", "") #this replaces all string x1: for empty, so only variable name is saved
-      #print (line)
       if (state==0):
         #stays in this state until stringstart is found
         if (line.find(stringstart)==0):#TODO: make this more robust this work only for hspice 2015, 0 for 2012
@@ -329,43 +328,45 @@ class hspicepython:
           
       elif (state==1):
         #this states is to add variables names and first values
-        #print (line)
         stringinline = str.split(line)
         if len(stringinline)>0:
-        
+          #when number is found, it save it and change the state to keep saving numbers
           if (is_number(stringinline[0])):
+          
+            #this is to only add one time sweep variable,
             if flagfirstread==1:
               namesaux = ['sweepvar']+namesaux
             
-            totalvariables= totalvariables + namesaux
-              
-            if (len(vol_curr_string)<(len(namesaux)+1+flagfirstread*-1)):
-              vol_curr_string = vol_curr_string + ['unknown']
-              
-            if flagfirstread==0:
-              vol_curr_string = vol_curr_string[1:]
-            names_vol_curr = names_vol_curr + vol_curr_string
-            
-            state=2
+            #do this only if variable have not been saved before
+            if not (any(x in totalvariables for x in namesaux)):
+              totalvariables= totalvariables + namesaux
+                          
+              if (len(vol_curr_string)<(len(namesaux)+1+flagfirstread*-1)):
+                vol_curr_string = vol_curr_string + ['unknown']
+                
+              if flagfirstread==0:
+                vol_curr_string = vol_curr_string[1:]
+              names_vol_curr = names_vol_curr + vol_curr_string
 
-            count=0
+              #this is to create cell for given printed variables
+              for variable in namesaux:
+                valuestoprint[variable] = []
+            state=2
             if flagfirstread==1:
               addint = 0
             else:
-              addint = 1 
-            #this is to create cell for given printed variables
-            for variable in namesaux:
-              valuestoprint[variable] = []
-              count+=1
-              
+              addint = 1                
+                
             count=0
             for variable in namesaux:
               valuestoprint[variable].append(stringinline[count+addint])
-              count+=1              
+              count+=1       
           else:
             #this saves previous string so names can be saved
             vol_curr_string = namesaux
             namesaux = stringinline
+
+            
             
 
       elif (state==2):
@@ -404,19 +405,26 @@ class hspicepython:
       
     hspicefileresult.write(stringtowrite[:-1]+'\n')
 
+    #this is to add elements to sweep variable when multiple times are needed, previous algorith dont do this
+    #this is to make sure each element in dic have same size of elements
+    lendic = []
+    for value in valuestoprint:
+      lendic = lendic+[(len(valuestoprint[value]))];
+    maxelement = (max(lendic))
+
+    for value in valuestoprint:
+      times_toadd = maxelement/(len(valuestoprint[value]));
+      if (times_toadd>1):
+        valuestoprint[value]=valuestoprint[value]+valuestoprint[value]*(times_toadd-1)
+    
+    #this part print the values into the text file
     lenarrayaux = len(valuestoprint[namesfinal[0]])
     count=0
     while (count<lenarrayaux):
-      stringtowrite = '' 
-      '''column=len(allvaldc)
-
-      j=0
-      while (j<column):
-        stringtowrite = stringtowrite+str(allvaldc[j][count])+' '
-        j+=1'''     
-      
+      stringtowrite = ''        
       for namevar in namesfinal:
         stringtowrite = stringtowrite + valuestoprint[namevar][count] + ' '
+
       hspicefileresult.write(stringtowrite[:-1]+'\n')
       count+=1
     hspicefileresult.close()    
