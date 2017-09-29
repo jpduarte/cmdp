@@ -30,10 +30,13 @@ class hspicepython:
     self.deviceparameter = ['L']#sim1.updateparameter('deviceparameter',['L'])#device parameters defined to sweep in simulation
     self.deviceparametervalue = [[1000e-9]]#sim1.updateparameter('deviceparametervalue',[[1000e-9]])#device parameter values for simulation
     self.vartosave = ['Ids']#sim1.updateparameter('vartosave',['Ids','qs']) #add variables to save   
+    self.abstol = '1e-6' #Sets the absolute error tolerance for branch currents in DC and transient analysis.
+    self.reltol = '1e-6' #Sets the relative error tolerance for voltages from iteration to iteration
+    self.absv = '1e-6' #Sets the absolute minimum voltage for DC and transient analysis.
   def updateparameter(self,name,value):
     #this funtion update a parameter in the model
     exec "self."+name+' = '+'value'    
-  def runsim(self):
+  def runsim(self,flagrun=1):
     #check if simulation path exist, if not, it create the folder
     if not os.path.exists(self.simulationfolder):
       os.makedirs(self.simulationfolder)
@@ -42,7 +45,8 @@ class hspicepython:
     simfile.write('*script to generate hspice simulation using cmdp, Juan Duarte \n')
     simfile.write('*Date: '+ time.strftime("%m/%d/%Y")+ ', time: ' + time.strftime("%H:%M:%S") + '\n\n')
     #TODO: do not hard code the following 3 lines, use them as parameters?
-    simfile.write('.option abstol=1e-6 reltol=1e-6 post ingold \n')
+    simfile.write('.option abstol='+self.abstol +' reltol=' +self.reltol +' post ingold \n')
+    simfile.write('.option ABSV='+self.absv + ' \n')
     simfile.write('.option measform=1 \n')
     simfile.write('.temp 27 \n')
     simfile.write('\n')
@@ -79,8 +83,15 @@ class hspicepython:
         stringinline = str.split(line)
         self.devicetype=stringinline[1]
     modelcardfile.close()    
-        
-    stringdevice = stringdevice + ' '+self.devicetype+ ' '+ self.deviceparameter[0]+' = \''+self.deviceparameter[0]+'_value\''+'\n'
+    
+    #add name of device like nmos1 based on modelcard
+    stringdevice = stringdevice + ' '+self.devicetype
+    #add all the parameters to be sweeped
+    parameterstringaux = ''
+    for parameteraux in self.deviceparameter:    
+      parameterstringaux = parameterstringaux + ' '+ parameteraux+' = \''+parameteraux+'_value\''
+    #put all together, ex: X1 Vd Vg Vs Vb nmos1 L = 'L_value'
+    stringdevice = stringdevice + parameterstringaux+'\n'  
     simfile.write(stringdevice)
     simfile.write('\n')
         
@@ -133,10 +144,12 @@ class hspicepython:
     
     simfile.close()   
     #hspice run file TODO: how to check simulation was aborted?
-    os.system('hspice ' + self.simulationfolder +self.simfilename+'.sp -o ' + self.simulationfolder+self.simfilename)
-   
+    if (flagrun==1):
+      os.system('hspice ' + self.simulationfolder +self.simfilename+'.sp -o ' + self.simulationfolder+self.simfilename)
+    #print(allvaldc)
     #parse results
-    self.hspicetotex('x','y',allvaldc)
+    #self.hspicetotex('x','y',allvaldc)
+    self.allvaldc = allvaldc
    
     '''#parse results
     outputfiletoread = open(self.simulationfolder+self.simfilename+'.lis', 'r') 
@@ -186,7 +199,8 @@ class hspicepython:
           i+=1'''
           
           
-  def hspicetotex(self,stringstart,stringend,allvaldc):
+  def hspicetotex(self,stringstart,stringend):#,allvaldc):
+    allvaldc = self.allvaldc 
     outputfiletoread = open(self.simulationfolder+self.simfilename+'.lis', 'r') 
     state=0
     #this take data from .lis file and save information in python dictionaries
@@ -198,19 +212,20 @@ class hspicepython:
     flagfirstread = 1 #use to save only once variable that is being sweeped for simulation, can be input voltage or time
     for line in outputfiletoread:
       line = line.replace("x1:", "") #this replaces all string x1: for empty, so only variable name is saved
-      #print line
       if (state==0):
         #stays in this state until stringstart is found
-        if (line.find(stringstart)==0):
+        if (line.find(stringstart)==0):#TODO: make this more robust this work only for hspice 2015, 0 for 2012
           state=1
+          
       elif (state==1):
+        #this states is to add variables names and first values
         stringinline = str.split(line)
         if len(stringinline)>0:
         
           if (is_number(stringinline[0])):
             if flagfirstread==1:
               namesaux = ['sweepvar']+namesaux
-
+            
             totalvariables= totalvariables + namesaux
               
             if (len(vol_curr_string)<(len(namesaux)+1+flagfirstread*-1)):
@@ -219,6 +234,7 @@ class hspicepython:
             if flagfirstread==0:
               vol_curr_string = vol_curr_string[1:]
             names_vol_curr = names_vol_curr + vol_curr_string
+            
             state=2
 
             count=0
@@ -239,10 +255,11 @@ class hspicepython:
             #this saves previous string so names can be saved
             vol_curr_string = namesaux
             namesaux = stringinline
+            
 
       elif (state==2):
-        #print line
-        if (line.find(stringend)==0) :
+        #this state keep adding values to the variables until end string is found then it goes back to state 0
+        if (line.find(stringend)==0) : #TODO: make this more robust this work only for hspice 2015, 0 for 2012
           flagfirstread = 0
 
           state=0
@@ -255,7 +272,8 @@ class hspicepython:
             addint = 1        
           for variable in namesaux:
             valuestoprint[variable].append(stringinline[count+addint])
-            count+=1              
+            count+=1    
+       
 
     #write all data to text file   
     hspicefileresult = open(self.simulationfolder+self.simresultfilename, 'w')        
@@ -289,4 +307,125 @@ class hspicepython:
       hspicefileresult.write(stringtowrite[:-1]+'\n')
       count+=1
     hspicefileresult.close() 
+  ##########################################################################################################################  
+  def hspicetotex2(self,stringstart,stringend, simfilename,simresultfilename):
+    #allvaldc = self.allvaldc 
+    outputfiletoread = open(simfilename, 'r') 
+    state=0
+    #this take data from .lis file and save information in python dictionaries
+    countruns=0
+    totalvariables = []
+    namesaux = ''
+    names_vol_curr = []
+    valuestoprint = {}
+    flagfirstread = 1 #use to save only once variable that is being sweeped for simulation, can be input voltage or time
+    for line in outputfiletoread:
+      line = line.replace("x1:", "") #this replaces all string x1: for empty, so only variable name is saved
+      if (state==0):
+        #stays in this state until stringstart is found
+        if (line.find(stringstart)==0):#TODO: make this more robust this work only for hspice 2015, 0 for 2012
+          state=1
+          
+      elif (state==1):
+        #this states is to add variables names and first values
+        stringinline = str.split(line)
+        if len(stringinline)>0:
+          #when number is found, it save it and change the state to keep saving numbers
+          if (is_number(stringinline[0])):
+          
+            #this is to only add one time sweep variable,
+            if flagfirstread==1:
+              namesaux = ['sweepvar']+namesaux
+            
+            #do this only if variable have not been saved before
+            if not (any(x in totalvariables for x in namesaux)):
+              totalvariables= totalvariables + namesaux
+                          
+              if (len(vol_curr_string)<(len(namesaux)+1+flagfirstread*-1)):
+                vol_curr_string = vol_curr_string + ['unknown']
+                
+              if flagfirstread==0:
+                vol_curr_string = vol_curr_string[1:]
+              names_vol_curr = names_vol_curr + vol_curr_string
+
+              #this is to create cell for given printed variables
+              for variable in namesaux:
+                valuestoprint[variable] = []
+            state=2
+            if flagfirstread==1:
+              addint = 0
+            else:
+              addint = 1                
+                
+            count=0
+            for variable in namesaux:
+              valuestoprint[variable].append(stringinline[count+addint])
+              count+=1       
+          else:
+            #this saves previous string so names can be saved
+            vol_curr_string = namesaux
+            namesaux = stringinline
+
+            
+            
+
+      elif (state==2):
+        #this state keep adding values to the variables until end string is found then it goes back to state 0
+        if (line.find(stringend)==0) : #TODO: make this more robust this work only for hspice 2015, 0 for 2012
+          flagfirstread = 0
+
+          state=0
+        else:   
+          stringinline = str.split(line)
+          count=0
+          if flagfirstread==1:
+            addint = 0
+          else:
+            addint = 1        
+          for variable in namesaux:
+            valuestoprint[variable].append(stringinline[count+addint])
+            count+=1    
+       
+
+    #write all data to text file   
+    #hspicefileresult = open(self.simulationfolder+self.simresultfilename, 'w')    
+    hspicefileresult = open(simresultfilename, 'w')      
+    namesfinal = valuestoprint.keys()
+    print (namesfinal)
+    stringtowrite = ''    
+    count=0  
+    
+    '''for Vbias in self.nodes:
+      stringtowrite = stringtowrite +Vbias.lower()+' '
+    for parameteraux in self.deviceparameter:
+      stringtowrite = stringtowrite+parameteraux.lower()+' '  '''  
+    for variable in namesfinal:
+      stringtowrite = stringtowrite + variable+ ' '
+      count+=1
+      
+    hspicefileresult.write(stringtowrite[:-1]+'\n')
+
+    #this is to add elements to sweep variable when multiple times are needed, previous algorith dont do this
+    #this is to make sure each element in dic have same size of elements
+    lendic = []
+    for value in valuestoprint:
+      lendic = lendic+[(len(valuestoprint[value]))];
+    maxelement = (max(lendic))
+
+    for value in valuestoprint:
+      times_toadd = maxelement/(len(valuestoprint[value]));
+      if (times_toadd>1):
+        valuestoprint[value]=valuestoprint[value]+valuestoprint[value]*(times_toadd-1)
+    
+    #this part print the values into the text file
+    lenarrayaux = len(valuestoprint[namesfinal[0]])
+    count=0
+    while (count<lenarrayaux):
+      stringtowrite = ''        
+      for namevar in namesfinal:
+        stringtowrite = stringtowrite + valuestoprint[namevar][count] + ' '
+
+      hspicefileresult.write(stringtowrite[:-1]+'\n')
+      count+=1
+    hspicefileresult.close()    
                         
